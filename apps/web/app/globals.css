@@ -1,0 +1,947 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #0a0a0a;
+  color: #e5e5e5;
+}
+
+/* GePanda Color Scheme */
+:root {
+  --gepanda-dark-green: #0d4f3c;
+  --gepanda-green: #1a7a5e;
+  --gepanda-light-green: #2d9d7a;
+  --gepanda-black: #000000;
+  --gepanda-dark-gray: #1a1a1a;
+  --gepanda-gray: #2d2d2d;
+  --gepanda-light-gray: #404040;
+  --gepanda-yellow: #fbbf24;
+  --gepanda-yellow-dark: #f59e0b;
+  --gepanda-white: #ffffff;
+  --gepanda-text-light: #e5e5e5;
+  --gepanda-text-muted: #a0a0a0;
+}
+
+/* Ensure Stream Chat container takes full height */
+#root,
+#__next {
+  height: 100%;
+}
+
+/* Stream Chat specific fixes - Comprehensive styling */
+.str-chat {
+  height: 100% !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Ensure all Stream Chat containers have proper sizing */
+.str-chat > * {
+  height: 100% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.str-chat__main {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  width: 100% !important;
+}
+
+.str-chat__container {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  width: 100% !important;
+}
+
+.str-chat__channel {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.str-chat__channel-panel {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  background: transparent !important;
+}
+
+.str-chat__channel-panel-inner {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+
+.str-chat__list {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+  background: transparent !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(45, 157, 122, 0.3) transparent !important;
+}
+
+.str-chat__list::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.str-chat__list::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.str-chat__list::-webkit-scrollbar-thumb {
+  background: rgba(45, 157, 122, 0.3) !important;
+  border-radius: 4px !important;
+}
+
+.str-chat__list::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 157, 122, 0.5) !important;
+}
+
+.str-chat__message-list {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  background: transparent !important;
+  padding: 1.5rem 1rem !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(45, 157, 122, 0.3) transparent !important;
+}
+
+.str-chat__message-list::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.str-chat__message-list::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.str-chat__message-list::-webkit-scrollbar-thumb {
+  background: rgba(45, 157, 122, 0.3) !important;
+  border-radius: 4px !important;
+}
+
+.str-chat__message-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 157, 122, 0.5) !important;
+}
+
+.str-chat__input-panel {
+  flex-shrink: 0 !important;
+  background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%) !important;
+  border-top: 2px solid rgba(45, 157, 122, 0.3) !important;
+  padding: 1.25rem 1rem !important;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+.str-chat__header-livestream {
+  flex-shrink: 0 !important;
+  background: linear-gradient(135deg, #0d4f3c 0%, #1a7a5e 100%) !important;
+  border-bottom: 2px solid rgba(45, 157, 122, 0.4) !important;
+  padding: 1.25rem 1rem !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Message styling - Modern & Attractive */
+.str-chat__message,
+.str-chat__message * {
+  box-sizing: border-box !important;
+}
+
+.str-chat__message {
+  margin-bottom: 1.25rem !important;
+  padding: 0.5rem 1rem !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  animation: fadeIn 0.3s ease-in !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.str-chat__message-simple {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  margin-bottom: 1rem !important;
+  padding: 0.5rem 0 !important;
+}
+
+.str-chat__message-inner {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-end !important;
+  gap: 0.75rem !important;
+  width: 100% !important;
+}
+
+.str-chat__message-inner--me {
+  flex-direction: row-reverse !important;
+}
+
+.str-chat__message-text {
+  padding: 0.75rem 1rem !important;
+  border-radius: 1rem !important;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+  color: #e5e5e5 !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.6 !important;
+  border: 1px solid rgba(45, 157, 122, 0.2) !important;
+  display: inline-block !important;
+  max-width: 75% !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+.str-chat__message-text:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+.str-chat__message-simple--me .str-chat__message-text,
+.str-chat__message-simple--me .str-chat__message-inner .str-chat__message-text {
+  background: linear-gradient(135deg, #1a7a5e 0%, #2d9d7a 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(45, 157, 122, 0.4) !important;
+  margin-left: auto !important;
+  box-shadow: 0 4px 12px rgba(26, 122, 94, 0.4) !important;
+}
+
+.str-chat__message-simple--me .str-chat__message-text:hover {
+  box-shadow: 0 6px 16px rgba(26, 122, 94, 0.5) !important;
+  transform: translateY(-2px) !important;
+}
+
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-text {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+  color: #e5e5e5 !important;
+  border: 1px solid rgba(45, 45, 45, 0.5) !important;
+  margin-right: auto !important;
+}
+
+/* Message bubble container - Enhanced */
+.str-chat__message-simple__body {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+  color: #e5e5e5 !important;
+  border: 1px solid rgba(45, 45, 45, 0.5) !important;
+  border-radius: 1rem !important;
+  padding: 0.75rem 1rem !important;
+  max-width: 75% !important;
+  word-wrap: break-word !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s ease !important;
+}
+
+.str-chat__message-simple__body:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+.str-chat__message-simple__body--user {
+  background: linear-gradient(135deg, #1a7a5e 0%, #2d9d7a 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(45, 157, 122, 0.4) !important;
+  align-self: flex-end !important;
+  margin-left: auto !important;
+  box-shadow: 0 4px 12px rgba(26, 122, 94, 0.4) !important;
+}
+
+.str-chat__message-simple__body--user:hover {
+  box-shadow: 0 6px 16px rgba(26, 122, 94, 0.5) !important;
+  transform: translateY(-2px) !important;
+}
+
+.str-chat__message-simple__body--other {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+  color: #e5e5e5 !important;
+  border: 1px solid rgba(45, 45, 45, 0.5) !important;
+  align-self: flex-start !important;
+}
+
+/* Message text content */
+.str-chat__message-simple__text {
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  color: inherit !important;
+  margin: 0 !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Message layout fixes - consolidated */
+.str-chat__message-simple__inner {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-end !important;
+  gap: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
+}
+
+.str-chat__message-simple__inner--me,
+.str-chat__message-simple--me .str-chat__message-simple__inner {
+  flex-direction: row-reverse !important;
+  justify-content: flex-end !important;
+}
+
+/* Message wrapper - override duplicate */
+.str-chat__message-simple {
+  display: flex !important;
+  flex-direction: column !important;
+  margin-bottom: 1rem !important;
+  padding: 0.5rem 1rem !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+/* Avatar positioning - Enhanced */
+.str-chat__message-simple__avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+  margin-bottom: 0.25rem !important;
+  border: 2px solid rgba(45, 157, 122, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s ease !important;
+}
+
+.str-chat__message-simple__avatar:hover {
+  border-color: rgba(45, 157, 122, 0.6) !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Input styling - Modern & Attractive - GePanda Design */
+/* Only style text inputs and textareas, not file inputs - let Stream handle file inputs */
+.str-chat__input textarea,
+.str-chat__input input[type="text"] {
+  border: 2px solid rgba(45, 45, 45, 0.5) !important;
+  border-radius: 0.75rem !important;
+  padding: 1rem 1.25rem !important;
+  min-height: 60px !important;
+  font-size: 0.9375rem !important;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%) !important;
+  color: #ffffff !important;
+  font-family: inherit !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.str-chat__input textarea:focus,
+.str-chat__input input[type="text"]:focus {
+  outline: none !important;
+  border-color: #2d9d7a !important;
+  box-shadow: 0 0 0 4px rgba(45, 157, 122, 0.2), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+}
+
+.str-chat__input::placeholder,
+.str-chat__input textarea::placeholder,
+.str-chat__input input::placeholder {
+  color: #a0a0a0 !important;
+  opacity: 1 !important;
+}
+
+/* Button styling - Modern & Attractive */
+.str-chat__send-button {
+  background: linear-gradient(135deg, #1a7a5e 0%, #2d9d7a 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 1.5rem !important;
+  cursor: pointer !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(26, 122, 94, 0.4) !important;
+  min-width: 80px !important;
+}
+
+.str-chat__send-button:hover {
+  background: linear-gradient(135deg, #2d9d7a 0%, #1a7a5e 100%) !important;
+  box-shadow: 0 6px 16px rgba(26, 122, 94, 0.5) !important;
+  transform: translateY(-2px) !important;
+}
+
+.str-chat__send-button:active {
+  background: linear-gradient(135deg, #0d4f3c 0%, #1a7a5e 100%) !important;
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 8px rgba(26, 122, 94, 0.3) !important;
+}
+
+/* Avatar styling */
+.str-chat__avatar {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+}
+
+/* Ensure images and other content don't overflow */
+.str-chat__message-attachment img,
+.str-chat__message-attachment video {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 0.5rem !important;
+}
+
+/* Scrollbar styling */
+.str-chat__list::-webkit-scrollbar,
+.str-chat__message-list::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.str-chat__list::-webkit-scrollbar-track,
+.str-chat__message-list::-webkit-scrollbar-track {
+  background: #1a1a1a !important;
+}
+
+.str-chat__list::-webkit-scrollbar-thumb,
+.str-chat__message-list::-webkit-scrollbar-thumb {
+  background: #2d2d2d !important;
+  border-radius: 4px !important;
+}
+
+.str-chat__list::-webkit-scrollbar-thumb:hover,
+.str-chat__message-list::-webkit-scrollbar-thumb:hover {
+  background: #1a7a5e !important;
+}
+
+/* Header text styling - Enhanced */
+.str-chat__header-livestream-left__title {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 1.125rem !important;
+  letter-spacing: 0.5px !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.str-chat__header-livestream-left__members {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+/* Message name styling - Enhanced */
+.str-chat__message-simple__name {
+  color: #a0a0a0 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 0.25rem !important;
+  letter-spacing: 0.3px !important;
+}
+
+.str-chat__message-simple__name--user {
+  color: #2d9d7a !important;
+  font-weight: 700 !important;
+}
+
+/* Message timestamp - Enhanced */
+.str-chat__message-simple__footer {
+  color: #808080 !important;
+  font-size: 0.75rem !important;
+  margin-top: 0.375rem !important;
+  padding: 0 !important;
+  opacity: 0.8 !important;
+  font-weight: 400 !important;
+}
+
+/* Input textarea styling - Enhanced - GePanda Design */
+.str-chat__textarea {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%) !important;
+  color: #ffffff !important;
+  border: 2px solid rgba(45, 45, 45, 0.5) !important;
+  border-radius: 0.75rem !important;
+  padding: 1rem 1.25rem !important;
+  min-height: 60px !important;
+  font-size: 0.9375rem !important;
+  resize: none !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  line-height: 1.6 !important;
+}
+
+.str-chat__textarea:focus {
+  outline: none !important;
+  border-color: #2d9d7a !important;
+  box-shadow: 0 0 0 4px rgba(45, 157, 122, 0.2), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+}
+
+.str-chat__textarea::placeholder {
+  color: #a0a0a0 !important;
+  opacity: 1 !important;
+}
+
+/* Input flex container */
+.str-chat__input-flat {
+  background-color: #1a1a1a !important;
+  border-top: 1px solid #2d2d2d !important;
+}
+
+.str-chat__input-flat-wrapper {
+  background-color: #1a1a1a !important;
+}
+
+/* Window container - Clean background */
+.str-chat__window {
+  background-color: transparent !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+/* Channel container - Clean background */
+.str-chat__channel {
+  background-color: transparent !important;
+}
+
+/* Fix message alignment */
+.str-chat__message-list {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+}
+
+.str-chat__message-list > div,
+.str-chat__message-list > ul,
+.str-chat__message-list > ol {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.str-chat__message-list li {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Additional message container fixes */
+.str-chat__message-list-scroll {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+}
+
+/* All message-related elements */
+[class*="str-chat__message"] {
+  box-sizing: border-box !important;
+}
+
+/* Ensure proper message bubble display */
+.str-chat__message-simple__body,
+.str-chat__message-text {
+  display: inline-block !important;
+  max-width: 75% !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+}
+
+/* Select and option styling */
+select {
+  background-color: #1a1a1a !important;
+  color: #e5e5e5 !important;
+  border: 1px solid #2d2d2d !important;
+}
+
+select option {
+  background-color: #1a1a1a !important;
+  color: #e5e5e5 !important;
+}
+
+/* Input focus states */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  border-color: #2d9d7a !important;
+  box-shadow: 0 0 0 3px rgba(45, 157, 122, 0.2) !important;
+}
+
+/* Background video styling - only on login page */
+main > video {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  z-index: 0 !important;
+}
+
+/* Ensure chatroom doesn't have video background */
+.str-chat video {
+  position: static !important;
+  z-index: auto !important;
+}
+
+/* Additional Stream Chat component fixes - Enhanced - GePanda Design */
+.str-chat__message-input {
+  background: transparent !important;
+  border-radius: 0.75rem !important;
+  padding: 0.5rem !important;
+}
+
+.str-chat__message-input-inner {
+  background: transparent !important;
+  border-radius: 0.75rem !important;
+}
+
+.str-chat__message-input-form {
+  background: transparent !important;
+  display: flex !important;
+  gap: 0.75rem !important;
+  align-items: center !important;
+}
+
+/* Fix empty state - Enhanced */
+.str-chat__empty-channel {
+  color: #808080 !important;
+  text-align: center !important;
+  padding: 3rem 2rem !important;
+  font-size: 1rem !important;
+  opacity: 0.7 !important;
+}
+
+/* Loading states - Enhanced */
+.str-chat__loading {
+  color: #2d9d7a !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 2rem !important;
+}
+
+.str-chat__loading::after {
+  content: '' !important;
+  width: 20px !important;
+  height: 20px !important;
+  border: 3px solid rgba(45, 157, 122, 0.3) !important;
+  border-top-color: #2d9d7a !important;
+  border-radius: 50% !important;
+  animation: spin 0.8s linear infinite !important;
+  margin-left: 0.5rem !important;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Thread styling */
+.str-chat__thread {
+  background-color: #1a1a1a !important;
+  border-left: 1px solid #2d2d2d !important;
+}
+
+.str-chat__thread-header {
+  background-color: #0d4f3c !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #1a7a5e !important;
+}
+
+/* Critical layout fixes for message bubbles - prevent narrow bubbles */
+.str-chat__main-panel {
+  width: 100% !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Ensure message containers have proper width - prevent narrow bubbles */
+.str-chat__message-simple {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.str-chat__message-simple__inner {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* Message text should have reasonable max-width but not too narrow */
+.str-chat__message-text {
+  max-width: 75% !important;
+  min-width: 120px !important;
+  width: auto !important;
+}
+
+.str-chat__message-simple__body {
+  max-width: 75% !important;
+  min-width: 120px !important;
+  width: auto !important;
+}
+
+/* Ensure text wraps properly within bubbles */
+.str-chat__message-text,
+.str-chat__message-simple__text {
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto !important;
+}
+
+/* ============================================
+   STREAM CHAT V2 STYLING OVERRIDES - CRITICAL
+   ============================================ */
+
+/* Remove white/grey backgrounds from all message bubble wrappers - CRITICAL */
+.str-chat__message-bubble,
+.str-chat__message-bubble *,
+.str-chat__message-inner,
+.str-chat__message-inner *,
+.str-chat__message-simple__content,
+.str-chat__message-simple__content *,
+.str-chat__message-simple__body,
+.str-chat__message-simple__body *,
+.str-chat__message-simple__text,
+.str-chat__message-simple__text *,
+.str-chat__message-container,
+.str-chat__message-container *,
+[class*="str-chat__message"][class*="bubble"]:not(.str-chat__message-text-inner),
+[class*="str-chat__message"][class*="inner"]:not(.str-chat__message-text-inner),
+[class*="str-chat__message"][class*="content"]:not(.str-chat__message-text-inner) {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* Only .str-chat__message-text-inner should have bubble background - remove from wrappers */
+.str-chat__message-bubble:not(.str-chat__message-text-inner),
+.str-chat__message-inner:not(.str-chat__message-text-inner),
+.str-chat__message-simple__content:not(.str-chat__message-text-inner),
+.str-chat__message-simple__body:not(.str-chat__message-text-inner) {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Message bubble background - ONLY on .str-chat__message-text-inner - Green for user messages */
+.str-chat__message-simple--me .str-chat__message-text-inner,
+.str-chat__message-simple--me .str-chat__message-text {
+  background: linear-gradient(135deg, #1a7a5e 0%, #2d9d7a 100%) !important;
+  background-color: #1a7a5e !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(45, 157, 122, 0.4) !important;
+}
+
+/* Other user messages (including AI) - Dark background ONLY on text-inner */
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-text-inner,
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-text {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+  background-color: #1a1a1a !important;
+  color: #e5e5e5 !important;
+  border: 1px solid rgba(45, 45, 45, 0.5) !important;
+}
+
+/* Ensure wrapper containers have NO background */
+.str-chat__message-simple--me .str-chat__message-bubble,
+.str-chat__message-simple--me .str-chat__message-inner,
+.str-chat__message-simple--me .str-chat__message-simple__content,
+.str-chat__message-simple--me .str-chat__message-simple__body {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-bubble,
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-inner,
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-simple__content,
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-simple__body {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Ensure all message text is white/light */
+.str-chat__message-simple--me .str-chat__message-text,
+.str-chat__message-simple--me .str-chat__message-text-inner,
+.str-chat__message-simple--me .str-chat__message-simple__text,
+.str-chat__message-simple--me .str-chat__message-bubble,
+.str-chat__message-simple--me [class*="text"] {
+  color: #ffffff !important;
+}
+
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-text,
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-text-inner,
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-simple__text {
+  color: #e5e5e5 !important;
+}
+
+/* Input textarea - Dark background, white text, white caret */
+.str-chat__textarea,
+.str-chat__textarea textarea,
+.str-chat__input textarea,
+.str-chat__input input[type="text"],
+.str-chat__message-input textarea,
+.str-chat__message-input input[type="text"],
+[class*="str-chat__textarea"] textarea,
+[class*="str-chat__input"] textarea {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%) !important;
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border: 2px solid rgba(45, 45, 45, 0.5) !important;
+  caret-color: #ffffff !important;
+}
+
+/* Input textarea focus state */
+.str-chat__textarea:focus,
+.str-chat__textarea textarea:focus,
+.str-chat__input textarea:focus,
+.str-chat__input input[type="text"]:focus,
+.str-chat__message-input textarea:focus,
+.str-chat__message-input input[type="text"]:focus,
+[class*="str-chat__textarea"] textarea:focus,
+[class*="str-chat__input"] textarea:focus {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%) !important;
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  caret-color: #ffffff !important;
+  border-color: #2d9d7a !important;
+}
+
+/* Input placeholder - Visible gray */
+.str-chat__textarea::placeholder,
+.str-chat__textarea textarea::placeholder,
+.str-chat__input textarea::placeholder,
+.str-chat__input input::placeholder,
+.str-chat__message-input textarea::placeholder,
+.str-chat__message-input input::placeholder,
+[class*="str-chat__textarea"] textarea::placeholder,
+[class*="str-chat__input"] textarea::placeholder {
+  color: #a0a0a0 !important;
+  opacity: 1 !important;
+}
+
+/* Remove any white backgrounds from message list containers */
+.str-chat__message-list,
+.str-chat__message-list > *,
+.str-chat__message-list-scroll,
+.str-chat__message-list-scroll > *,
+.str-chat__channel-panel,
+.str-chat__channel-panel > *,
+.str-chat__window,
+.str-chat__window > * {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+/* Override any inline styles or Stream defaults that set white backgrounds */
+.str-chat__message-bubble[style*="background"],
+.str-chat__message-text-inner[style*="background"],
+.str-chat__textarea[style*="background"],
+.str-chat__input[style*="background"] {
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%) !important;
+  background-color: #1a1a1a !important;
+}
+
+/* Force white text in all input fields */
+.str-chat__textarea,
+.str-chat__input textarea,
+.str-chat__message-input textarea,
+[class*="str-chat__textarea"],
+[class*="str-chat__input"] textarea {
+  color: #ffffff !important;
+}
+
+/* Force white caret in all input fields */
+.str-chat__textarea,
+.str-chat__input textarea,
+.str-chat__message-input textarea {
+  caret-color: #ffffff !important;
+}
+
+/* ============================================
+   REMOVE WRAPPER BACKGROUND SLABS - CRITICAL
+   ============================================ */
+
+/* Remove ALL background colors from message wrapper containers - only text-inner should have background */
+.str-chat__message-simple__content,
+.str-chat__message-simple__content *:not(.str-chat__message-text-inner):not(.str-chat__message-text),
+.str-chat__message-inner,
+.str-chat__message-inner *:not(.str-chat__message-text-inner):not(.str-chat__message-text),
+.str-chat__message-container,
+.str-chat__message-container *:not(.str-chat__message-text-inner):not(.str-chat__message-text),
+.str-chat__message-bubble:not(.str-chat__message-text-inner),
+.str-chat__message-bubble:not(.str-chat__message-text-inner) *:not(.str-chat__message-text-inner):not(.str-chat__message-text) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Specifically target AI message wrappers to remove grey/white slabs */
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-simple__content,
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-inner,
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-container,
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-bubble:not(.str-chat__message-text-inner) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
