@@ -2,6 +2,10 @@
   "name": "gepanda-ai-groupchat",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
+  },
   "workspaces": [
     "apps/*",
     "packages/*"
