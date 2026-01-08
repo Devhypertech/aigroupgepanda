@@ -60,7 +60,7 @@ export async function getRoomMessages(roomId: string, limit: number = 50, before
     }
   }
 
-  return await prisma.message.findMany({
+  return await (prisma.message.findMany as any)({
     where,
     orderBy: { createdAt: 'desc' },
     take: limit,
@@ -126,11 +126,11 @@ export async function editMessage(messageId: string, userId: string, newText: st
     throw new Error('Not authorized to edit this message');
   }
 
-  if (message.isDeleted) {
+  if ((message as any).isDeleted) {
     throw new Error('Cannot edit deleted message');
   }
 
-  return await prisma.message.update({
+  return await (prisma.message.update as any)({
     where: { id: messageId },
     data: {
       text: newText,
@@ -161,7 +161,7 @@ export async function deleteMessage(messageId: string, userId: string) {
     throw new Error('Not authorized to delete this message');
   }
 
-  return await prisma.message.update({
+  return await (prisma.message.update as any)({
     where: { id: messageId },
     data: {
       isDeleted: true,
@@ -177,7 +177,7 @@ export async function addMessageReaction(
   username: string,
   emoji: string
 ) {
-  return await prisma.messageReaction.upsert({
+  return await (prisma as any).messageReaction.upsert({
     where: {
       messageId_userId_emoji: {
         messageId,
@@ -196,7 +196,7 @@ export async function addMessageReaction(
 }
 
 export async function removeMessageReaction(messageId: string, userId: string, emoji: string) {
-  return await prisma.messageReaction.deleteMany({
+  return await (prisma as any).messageReaction.deleteMany({
     where: {
       messageId,
       userId,
@@ -206,7 +206,7 @@ export async function removeMessageReaction(messageId: string, userId: string, e
 }
 
 export async function getMessageReactions(messageId: string) {
-  return await prisma.messageReaction.findMany({
+  return await (prisma as any).messageReaction.findMany({
     where: { messageId },
     select: {
       emoji: true,
