@@ -1,8 +1,8 @@
 // Load .env - dotenv/config will look in current working directory (apps/api) or project root
 import 'dotenv/config';
 
-// Log API key status for debugging
-console.log('ZHIPU_API_KEY:', process.env.ZHIPU_API_KEY ? '✓ Loaded (' + process.env.ZHIPU_API_KEY.substring(0, 20) + '...)' : '✗ NOT FOUND');
+// Log API key status for debugging (without exposing key)
+console.log('ZHIPU_API_KEY:', process.env.ZHIPU_API_KEY ? '✓ Loaded' : '✗ NOT FOUND');
 import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';

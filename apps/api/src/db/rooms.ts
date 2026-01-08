@@ -56,11 +56,15 @@ export async function getRoomMessages(roomId: string, limit: number = 50, before
       select: { createdAt: true },
     });
     if (beforeMessage) {
+      // For pagination: get messages older than beforeMessage
       where.createdAt = { lt: beforeMessage.createdAt };
     }
   }
 
-  return await (prisma.message.findMany as any)({
+  // Fetch messages in descending order (newest first) for proper pagination
+  // When paginating with beforeMessageId, we get the newest messages that are older than beforeMessage
+  // This ensures correct pagination: each page shows the next batch of older messages
+  const messages = await (prisma.message.findMany as any)({
     where,
     orderBy: { createdAt: 'desc' },
     take: limit,
@@ -74,6 +78,9 @@ export async function getRoomMessages(roomId: string, limit: number = 50, before
       },
     },
   });
+
+  // Return messages in descending order (newest first) - no reversal needed
+  return messages;
 }
 
 export async function getRoomTemplate(roomId: string): Promise<RoomTemplate> {

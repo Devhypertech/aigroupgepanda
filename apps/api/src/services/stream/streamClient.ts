@@ -1,7 +1,11 @@
 import { StreamChat } from 'stream-chat';
 
-const STREAM_API_KEY = process.env.STREAM_API_KEY || 't42e5mmyf6zb';
-const STREAM_SECRET = process.env.STREAM_SECRET || 'mqxzqa2yxmdb26kwsn457bagtk6k97ykz33vvmhdzeu6am6jwttzqnwxzhe5ckqx';
+const STREAM_API_KEY = process.env.STREAM_API_KEY;
+const STREAM_SECRET = process.env.STREAM_SECRET;
+
+if (!STREAM_API_KEY || !STREAM_SECRET) {
+  throw new Error('STREAM_API_KEY and STREAM_SECRET environment variables are required');
+}
 
 // Server-side Stream Chat client (uses secret key)
 export const streamServerClient = StreamChat.getInstance(STREAM_API_KEY, STREAM_SECRET);
