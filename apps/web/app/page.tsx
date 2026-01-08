@@ -13,7 +13,11 @@ import {
 } from 'stream-chat-react';
 import { RoomTemplate } from '@gepanda/shared';
 
-const STREAM_API_KEY = 't42e5mmyf6zb';
+const STREAM_API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
+
+if (!STREAM_API_KEY) {
+  throw new Error('NEXT_PUBLIC_STREAM_API_KEY environment variable is required');
+}
 
 export default function Home() {
   const [client, setClient] = useState<StreamChat | null>(null);
@@ -273,7 +277,7 @@ export default function Home() {
       console.log('[Frontend] Step 2: Initializing Stream Chat client...');
       // Initialize Stream Chat client
       const streamClient = StreamChat.getInstance(STREAM_API_KEY);
-      console.log('[Frontend] Stream client instance created, API key:', STREAM_API_KEY.substring(0, 10) + '...');
+      console.log('[Frontend] Stream client instance created, API key:', STREAM_API_KEY ? '✓ Loaded' : '✗ NOT FOUND');
       
       console.log('[Frontend] Step 3: Connecting user to Stream...');
       console.log('[Frontend] Connection details:', { userId, username, hasToken: !!token });
