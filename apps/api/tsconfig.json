@@ -14,7 +14,7 @@
     "noImplicitAny": false,
     "baseUrl": ".",
     "paths": {
-      "@gepanda/shared": ["../../packages/shared/dist/index"]
+      "@gepanda/shared": ["../../packages/shared/src/index", "../../packages/shared/dist/index"]
     }
   },
   "include": ["src/**/*"],

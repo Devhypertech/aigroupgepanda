@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { StreamChat } from 'stream-chat';
 import {
   Chat,
@@ -13,10 +13,13 @@ import {
 } from 'stream-chat-react';
 import { RoomTemplate } from '@gepanda/shared';
 
+// Get environment variables with fallbacks for development
 const STREAM_API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+// Validate required environment variables
 if (!STREAM_API_KEY) {
-  throw new Error('NEXT_PUBLIC_STREAM_API_KEY environment variable is required');
+  console.error('⚠️ NEXT_PUBLIC_STREAM_API_KEY is not set. Chat functionality will not work.');
 }
 
 export default function Home() {
@@ -42,11 +45,16 @@ export default function Home() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [joiningRoom, setJoiningRoom] = useState(false);
+  const [envError, setEnvError] = useState<string | null>(!STREAM_API_KEY ? 'NEXT_PUBLIC_STREAM_API_KEY is not set. Please configure it in your environment variables.' : null);
+  
+  // Cooldown to prevent duplicate AI requests (10 seconds)
+  const lastAiRequest = useRef<Map<string, number>>(new Map());
+  const AI_COOLDOWN_MS = 10000;
 
   // Resolve invite token to roomId
   const resolveInviteToken = async (token: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/invites/${token}`);
+      const response = await fetch(`${API_URL}/api/invites/${token}`);
       if (response.ok) {
         const data = await response.json();
         setRoomId(data.roomId);
@@ -87,7 +95,7 @@ export default function Home() {
 
     setInviteLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/rooms/${roomId}/invite`, {
+          const response = await fetch(`${API_URL}/api/rooms/${roomId}/invite`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,7 +143,7 @@ export default function Home() {
     if (!roomId) return;
 
     try {
-      const response = await fetch(`http://localhost:3001/api/rooms/${roomId}/context`);
+          const response = await fetch(`${API_URL}/api/rooms/${roomId}/context`);
       if (response.ok) {
         const result = await response.json();
         if (result.data) {
@@ -191,7 +199,7 @@ export default function Home() {
         contextData.notes = tripContext.notes.trim();
       }
 
-      const response = await fetch(`http://localhost:3001/api/rooms/${roomId}/context`, {
+          const response = await fetch(`${API_URL}/api/rooms/${roomId}/context`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -222,11 +230,17 @@ export default function Home() {
     
     console.log('[Frontend] Join room button clicked');
     
-    if (!roomId || !userId || !username) {
-      alert('Please fill in all fields');
-      setJoiningRoom(false);
-      return;
-    }
+      if (!STREAM_API_KEY) {
+        alert('NEXT_PUBLIC_STREAM_API_KEY is not configured. Please set it in your environment variables.');
+        setJoiningRoom(false);
+        return;
+      }
+
+      if (!roomId || !userId || !username) {
+        alert('Please fill in all fields');
+        setJoiningRoom(false);
+        return;
+      }
 
     console.log('[Frontend] Form validation passed, starting join process...');
     setJoiningRoom(true);
@@ -238,7 +252,7 @@ export default function Home() {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      const healthCheck = await fetch('http://localhost:3001/', {
+          const healthCheck = await fetch(`${API_URL}/`, {
         method: 'GET',
         signal: controller.signal,
       });
@@ -246,7 +260,7 @@ export default function Home() {
       console.log('[Frontend] Backend health check:', healthCheck.status);
     } catch (error) {
       console.error('[Frontend] Backend health check failed:', error);
-      alert('Cannot connect to backend server. Please ensure the backend is running on http://localhost:3001\n\nCheck:\n1. Backend terminal shows "Server running on http://localhost:3001"\n2. No errors in backend console\n3. Try accessing http://localhost:3001 in your browser');
+          alert(`Cannot connect to backend server. Please ensure the backend is running on ${API_URL}\n\nCheck:\n1. Backend terminal shows "Server running on ${API_URL}"\n2. No errors in backend console\n3. Try accessing ${API_URL} in your browser`);
       setJoiningRoom(false);
       return;
     }
@@ -254,7 +268,7 @@ export default function Home() {
     try {
       console.log('[Frontend] Step 1: Getting Stream token from backend...');
       // Get Stream token from backend
-      const tokenResponse = await fetch('http://localhost:3001/api/stream/token', {
+      const tokenResponse = await fetch(`${API_URL}/api/stream/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -307,7 +321,7 @@ export default function Home() {
       console.log('[Frontend] Setting up channel:', channelId);
       
       // Create channel and add user as member (server-side with proper permissions)
-      const channelSetupResponse = await fetch('http://localhost:3001/api/stream/channel', {
+          const channelSetupResponse = await fetch(`${API_URL}/api/stream/channel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -345,7 +359,7 @@ export default function Home() {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
       // Show detailed error
-      const errorDetails = `Error: ${errorMessage}\n\nTroubleshooting:\n1. Check browser console (F12) for details\n2. Check backend terminal for errors\n3. Verify backend is running: http://localhost:3001\n4. Check network tab for failed requests`;
+          const errorDetails = `Error: ${errorMessage}\n\nTroubleshooting:\n1. Check browser console (F12) for details\n2. Check backend terminal for errors\n3. Verify backend is running: ${API_URL}\n4. Check network tab for failed requests`;
       
       console.error('[Frontend] Full error details:', {
         error,
@@ -397,7 +411,9 @@ export default function Home() {
     }
   }, []);
 
-  // Listen for new messages and trigger AI if message starts with "ai"
+  // Listen for new messages and trigger AI automatically
+  // Note: For local development, we trigger AI from frontend since webhooks require public URL
+  // In production, Stream Chat webhooks will handle this automatically
   useEffect(() => {
     if (!channel || !client) return;
 
@@ -409,57 +425,66 @@ export default function Home() {
         return;
       }
 
-      // Check if message starts with "ai" (case-insensitive)
+      // Skip if message is a system message
+      if (message.type === 'system' || message.user?.id === 'system') {
+        return;
+      }
+
+      // Check if message has text content
       const messageText = (message.text || '').trim();
-      const normalizedText = messageText.toLowerCase();
-      // Must start with "ai" followed by space or be exactly "ai" (to avoid matching "airplane", "airport", etc.)
-      const startsWithAi = normalizedText.startsWith('ai ') || normalizedText === 'ai';
+      if (!messageText) {
+        return;
+      }
+
+      // Extract channel ID and room ID
+      const channelId = channel.id || '';
+      const extractedRoomId = channelId.replace('room-', '');
       
-      console.log('[Frontend] New message received:', {
-        originalText: message.text,
-        trimmedText: messageText,
-        normalizedText,
-        startsWithAi,
+      // Check cooldown to prevent spam
+      const now = Date.now();
+      const lastRequest = lastAiRequest.current.get(channelId);
+      if (lastRequest && (now - lastRequest) < AI_COOLDOWN_MS) {
+        const remainingSeconds = Math.ceil((AI_COOLDOWN_MS - (now - lastRequest)) / 1000);
+        console.log(`[Frontend] AI cooldown active, ${remainingSeconds}s remaining`);
+        return;
+      }
+      
+      // Set cooldown
+      lastAiRequest.current.set(channelId, now);
+      
+      // Call AI reply API (non-blocking) - AI will respond automatically
+      console.log('[Frontend] Auto-triggering AI response for message:', { 
+        messageId: message.id,
         userId: message.user?.id,
+        textPreview: messageText.substring(0, 50)
       });
       
-      if (startsWithAi) {
-        // Extract channel ID and room ID
-        const channelId = channel.id || '';
-        const extractedRoomId = channelId.replace('room-', '');
-        
-        // Strip "ai" prefix from message before sending to AI
-        const aiMessageText = messageText.replace(/^ai\s*/i, '').trim();
-        
-        // Call AI reply API (non-blocking)
-        console.log('[Frontend] Detected AI trigger, calling API...', { original: messageText, stripped: aiMessageText });
-        fetch('http://localhost:3001/api/ai/reply', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            channelId,
-            roomId: extractedRoomId,
-            roomTemplate,
-            userId: message.user?.id || '',
-            username: message.user?.name || '',
-            text: aiMessageText || messageText, // Use stripped text, fallback to original if empty
-          }),
-        })
-        .then(async (response) => {
-          if (!response.ok) {
-            const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-            console.error('[Frontend] AI API error:', error);
-          } else {
-            const data = await response.json();
-            console.log('[Frontend] AI reply posted successfully:', data);
-          }
-        })
-        .catch((error) => {
-          console.error('[Frontend] Error calling AI reply API:', error);
-        });
-      }
+      fetch(`${API_URL}/api/ai/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          channelId,
+          roomId: extractedRoomId,
+          roomTemplate,
+          userId: message.user?.id || '',
+          username: message.user?.name || '',
+          text: messageText,
+        }),
+      })
+      .then(async (response) => {
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+          console.error('[Frontend] AI API error:', error);
+        } else {
+          const data = await response.json();
+          console.log('[Frontend] AI reply posted successfully:', data);
+        }
+      })
+      .catch((error) => {
+        console.error('[Frontend] Error calling AI reply API:', error);
+      });
     };
 
     // Listen for new messages
@@ -468,7 +493,7 @@ export default function Home() {
     return () => {
       channel.off('message.new', handleNewMessage);
     };
-  }, [channel, roomTemplate]);
+  }, [channel, roomTemplate, API_URL]);
 
   // Inject critical CSS for message styling - Enhanced
   useEffect(() => {
@@ -714,6 +739,27 @@ export default function Home() {
           GePanda AI Group Chat
         </h1>
         <p style={{ color: '#a0a0a0', marginBottom: '2rem' }}>Join a room to start chatting</p>
+        
+        {envError && (
+          <div style={{
+            padding: '1rem',
+            marginBottom: '1rem',
+            backgroundColor: '#7f1d1d',
+            border: '1px solid #dc2626',
+            borderRadius: '8px',
+            color: '#fee2e2'
+          }}>
+            <p style={{ margin: 0, fontWeight: '600', marginBottom: '0.5rem' }}>⚠️ Configuration Error</p>
+            <p style={{ margin: 0, fontSize: '0.875rem' }}>{envError}</p>
+            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.75rem', opacity: 0.9 }}>
+              For local development, create a <code style={{ backgroundColor: 'rgba(0,0,0,0.3)', padding: '0.125rem 0.25rem', borderRadius: '4px' }}>.env.local</code> file in <code style={{ backgroundColor: 'rgba(0,0,0,0.3)', padding: '0.125rem 0.25rem', borderRadius: '4px' }}>apps/web</code> with:
+            </p>
+            <pre style={{ margin: '0.5rem 0 0 0', padding: '0.5rem', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: '4px', fontSize: '0.75rem', overflow: 'auto' }}>
+{`NEXT_PUBLIC_STREAM_API_KEY=your_key_here
+NEXT_PUBLIC_API_URL=http://localhost:3001`}
+            </pre>
+          </div>
+        )}
         
         {joiningRoom && (
           <div style={{ 

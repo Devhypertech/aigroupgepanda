@@ -1,8 +1,36 @@
 // Load .env - dotenv/config will look in current working directory (apps/api) or project root
 import 'dotenv/config';
 
-// Log API key status for debugging (without exposing key)
-console.log('ZHIPU_API_KEY:', process.env.ZHIPU_API_KEY ? '✓ Loaded' : '✗ NOT FOUND');
+// Validate required environment variables
+const requiredEnvVars = {
+  STREAM_API_KEY: process.env.STREAM_API_KEY,
+  STREAM_API_SECRET: process.env.STREAM_API_SECRET,
+  ZHIPU_API_KEY: process.env.ZHIPU_API_KEY,
+};
+
+const missingEnvVars = Object.entries(requiredEnvVars)
+  .filter(([_, value]) => !value)
+  .map(([key]) => key);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required environment variables:');
+  missingEnvVars.forEach(key => console.error(`   - ${key}`));
+  console.error('\nPlease set these environment variables before starting the server.');
+  console.error('For local development, create a .env file in apps/api/ with:');
+  console.error('  STREAM_API_KEY=your_key');
+  console.error('  STREAM_API_SECRET=your_secret');
+  console.error('  ZHIPU_API_KEY=your_key');
+  console.error('  DATABASE_URL=your_database_url (optional for basic functionality)');
+  process.exit(1);
+}
+
+// Log environment variable status
+console.log('✅ Environment Variables Status:');
+console.log(`   STREAM_API_KEY: ${requiredEnvVars.STREAM_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
+console.log(`   STREAM_API_SECRET: ${requiredEnvVars.STREAM_API_SECRET ? '✓ Loaded' : '✗ Missing'}`);
+console.log(`   ZHIPU_API_KEY: ${requiredEnvVars.ZHIPU_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
+console.log(`   DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Loaded' : '⚠️  Not set (some features may not work)'}`);
+
 import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
@@ -66,31 +94,59 @@ const PORT = process.env.PORT || 3001;
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('Shutting down gracefully...');
-  await prisma.$disconnect();
+  try {
+    await prisma.$disconnect();
+  } catch (error) {
+    // Ignore disconnect errors if database wasn't connected
+  }
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   console.log('Shutting down gracefully...');
-  await prisma.$disconnect();
+  try {
+    await prisma.$disconnect();
+  } catch (error) {
+    // Ignore disconnect errors if database wasn't connected
+  }
   process.exit(0);
 });
 
 httpServer.listen(PORT, async () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Database: ${process.env.DATABASE_URL ? 'DATABASE_URL set' : 'DATABASE_URL not set'}`);
+  console.log(`\n🚀 Server running on http://localhost:${PORT}`);
+  console.log(`📡 API available at http://localhost:${PORT}/`);
   
   // Initialize AI Companion
-  await initializeAICompanion();
+  try {
+    await initializeAICompanion();
+    console.log('✅ AI Companion initialized');
+  } catch (error) {
+    console.error('❌ Failed to initialize AI Companion:', error instanceof Error ? error.message : error);
+  }
   
   // Test database connection (non-blocking)
-  prisma.$connect()
-    .then(() => {
-      console.log('Database connection successful');
-    })
-    .catch((error) => {
-      console.warn('Database connection failed (server will continue):', error.message);
-      console.warn('Note: Some features requiring database will not work until database is available');
-    });
+  if (process.env.DATABASE_URL) {
+    prisma.$connect()
+      .then(() => {
+        console.log('✅ Database connection successful');
+      })
+      .catch((error) => {
+        console.warn('⚠️  Database connection failed (server will continue):', error.message);
+        console.warn('   Note: Some features requiring database will not work until database is available');
+      });
+  } else {
+    console.warn('⚠️  DATABASE_URL not set - database features will not be available');
+    console.warn('   Server will continue running, but room management features may be limited');
+  }
+  
+  console.log('\n📋 Available endpoints:');
+  console.log('   GET  / - API status');
+  console.log('   POST /api/stream/token - Generate Stream token');
+  console.log('   POST /api/stream/channel - Create/get channel');
+  console.log('   POST /api/ai/reply - Generate AI reply');
+  console.log('   GET  /api/rooms/:roomId/context - Get trip context');
+  console.log('   PUT  /api/rooms/:roomId/context - Update trip context');
+  console.log('   POST /api/rooms/:roomId/invite - Create invite link');
+  console.log('   GET  /api/invites/:token - Resolve invite token\n');
 });
 

@@ -1,5 +1,6 @@
 // Zhipu AI GLM-4.6 Flash integration
-const ZHIPU_API_KEY = process.env.ZHIPU_API_KEY || '';
+// ZHIPU_API_KEY is validated at startup in index.ts, so it should always be defined here
+const ZHIPU_API_KEY = process.env.ZHIPU_API_KEY!;
 const ZHIPU_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 
 export interface ZhipuMessage {
@@ -15,9 +16,11 @@ export interface ZhipuChatRequest {
 }
 
 export async function callZhipuAI(messages: ZhipuMessage[]): Promise<string> {
+  // ZHIPU_API_KEY is validated at startup, so this should never happen
+  // But we keep the check for type safety and runtime safety
   if (!ZHIPU_API_KEY) {
-    console.warn('ZHIPU_API_KEY not set, using fallback response');
-    return "I'm here to help! However, my AI capabilities are not fully configured yet. Please set up your Zhipu API key.";
+    console.error('ZHIPU_API_KEY not set - this should not happen as it is validated at startup');
+    throw new Error('ZHIPU_API_KEY is not configured. Please set it in your environment variables.');
   }
 
   try {
