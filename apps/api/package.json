@@ -12,7 +12,7 @@
     "db:reset": "prisma migrate reset --schema=../../prisma/schema.prisma"
   },
   "dependencies": {
-    "@gepanda/shared": "file:../../packages/shared",
+    "@gepanda/shared": "*",
     "@prisma/client": "^5.7.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
