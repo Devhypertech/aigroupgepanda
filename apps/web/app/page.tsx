@@ -223,7 +223,7 @@ export default function Home() {
 
   const handleJoinRoom = async (e?: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
     if (e) {
-      e.preventDefault();
+    e.preventDefault();
       e.stopPropagation();
     }
     console.log('[Frontend] handleJoinRoom called');
@@ -233,14 +233,14 @@ export default function Home() {
       if (!STREAM_API_KEY) {
         alert('NEXT_PUBLIC_STREAM_API_KEY is not configured. Please set it in your environment variables.');
         setJoiningRoom(false);
-        return;
-      }
+      return;
+    }
 
-      if (!roomId || !userId || !username) {
+    if (!roomId || !userId || !username) {
         alert('Please fill in all fields');
         setJoiningRoom(false);
-        return;
-      }
+      return;
+    }
 
     console.log('[Frontend] Form validation passed, starting join process...');
     setJoiningRoom(true);

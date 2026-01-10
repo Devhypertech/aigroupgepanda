@@ -89,7 +89,7 @@ app.use('/api/ai', aiRouter);
 // Setup Stream Chat webhooks
 setupStreamWebhooks(app);
 
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
@@ -112,8 +112,8 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-httpServer.listen(PORT, async () => {
-  console.log(`\n🚀 Server running on http://localhost:${PORT}`);
+httpServer.listen(PORT, '0.0.0.0', async () => {
+  console.log(`\n🚀 Server running on http://0.0.0.0:${PORT}`);
   console.log(`📡 API available at http://localhost:${PORT}/`);
   
   // Initialize AI Companion
