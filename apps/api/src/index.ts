@@ -89,13 +89,11 @@ app.use('/api/ai', aiRouter);
 // Setup Stream Chat webhooks
 setupStreamWebhooks(app);
 
-// ✅ ONE port variable only (Railway injects process.env.PORT)
-const port = Number(process.env.PORT ?? 3001);
+const PORT = Number(process.env.PORT || 3001);
 
-// ✅ Start ONE server only (use httpServer since you created it)
-httpServer.listen(port, '0.0.0.0', async () => {
-  console.log(`\n🚀 Server running on http://0.0.0.0:${port}`);
-  console.log(`📡 API available at / (port ${port})`);
+httpServer.listen(PORT, '0.0.0.0', async () => {
+  console.log(`\n🚀 Server running on 0.0.0.0:${PORT}`);
+  console.log(`📡 API base: /`);
 
   // Initialize AI Companion
   try {
@@ -110,27 +108,12 @@ httpServer.listen(port, '0.0.0.0', async () => {
 
   // Test database connection (non-blocking)
   if (process.env.DATABASE_URL) {
-    prisma
-      .$connect()
-      .then(() => {
-        console.log('✅ Database connection successful');
-      })
+    prisma.$connect()
+      .then(() => console.log('✅ Database connection successful'))
       .catch((error) => {
         console.warn('⚠️  Database connection failed (server will continue):', error.message);
-        console.warn('   Note: Some features requiring database will not work until database is available');
       });
   } else {
     console.warn('⚠️  DATABASE_URL not set - database features will not be available');
-    console.warn('   Server will continue running, but room management features may be limited');
   }
-
-  console.log('\n📋 Available endpoints:');
-  console.log('   GET  / - API status');
-  console.log('   POST /api/stream/token - Generate Stream token');
-  console.log('   POST /api/stream/channel - Create/get channel');
-  console.log('   POST /api/ai/reply - Generate AI reply');
-  console.log('   GET  /api/rooms/:roomId/context - Get trip context');
-  console.log('   PUT  /api/rooms/:roomId/context - Update trip context');
-  console.log('   POST /api/rooms/:roomId/invite - Create invite link');
-  console.log('   GET  /api/invites/:token - Resolve invite token\n');
 });
