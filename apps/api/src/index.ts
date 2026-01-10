@@ -89,44 +89,29 @@ app.use('/api/ai', aiRouter);
 // Setup Stream Chat webhooks
 setupStreamWebhooks(app);
 
-const PORT = parseInt(process.env.PORT || '3001', 10);
+// ✅ ONE port variable only (Railway injects process.env.PORT)
+const port = Number(process.env.PORT ?? 3001);
 
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('Shutting down gracefully...');
-  try {
-    await prisma.$disconnect();
-  } catch (error) {
-    // Ignore disconnect errors if database wasn't connected
-  }
-  process.exit(0);
-});
+// ✅ Start ONE server only (use httpServer since you created it)
+httpServer.listen(port, '0.0.0.0', async () => {
+  console.log(`\n🚀 Server running on http://0.0.0.0:${port}`);
+  console.log(`📡 API available at / (port ${port})`);
 
-process.on('SIGTERM', async () => {
-  console.log('Shutting down gracefully...');
-  try {
-    await prisma.$disconnect();
-  } catch (error) {
-    // Ignore disconnect errors if database wasn't connected
-  }
-  process.exit(0);
-});
-
-httpServer.listen(PORT, '0.0.0.0', async () => {
-  console.log(`\n🚀 Server running on http://0.0.0.0:${PORT}`);
-  console.log(`📡 API available at http://localhost:${PORT}/`);
-  
   // Initialize AI Companion
   try {
     await initializeAICompanion();
     console.log('✅ AI Companion initialized');
   } catch (error) {
-    console.error('❌ Failed to initialize AI Companion:', error instanceof Error ? error.message : error);
+    console.error(
+      '❌ Failed to initialize AI Companion:',
+      error instanceof Error ? error.message : error
+    );
   }
-  
+
   // Test database connection (non-blocking)
   if (process.env.DATABASE_URL) {
-    prisma.$connect()
+    prisma
+      .$connect()
       .then(() => {
         console.log('✅ Database connection successful');
       })
@@ -138,7 +123,7 @@ httpServer.listen(PORT, '0.0.0.0', async () => {
     console.warn('⚠️  DATABASE_URL not set - database features will not be available');
     console.warn('   Server will continue running, but room management features may be limited');
   }
-  
+
   console.log('\n📋 Available endpoints:');
   console.log('   GET  / - API status');
   console.log('   POST /api/stream/token - Generate Stream token');
@@ -149,4 +134,3 @@ httpServer.listen(PORT, '0.0.0.0', async () => {
   console.log('   POST /api/rooms/:roomId/invite - Create invite link');
   console.log('   GET  /api/invites/:token - Resolve invite token\n');
 });
-
