@@ -46,9 +46,16 @@ const app = express();
 const httpServer = createServer(app);
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3002', 'http://127.0.0.1:3000', 'http://127.0.0.1:3002'],
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3002',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3002',
+    'https://aigroupgepanda-api.vercel.app',
+  ],
   credentials: true,
 }));
+
 app.use(express.json());
 
 // Root route - API info
