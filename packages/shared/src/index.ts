@@ -1,5 +1,5 @@
 // Re-export socket event constants
-export { SOCKET_EVENTS } from './socketEvents';
+export { SOCKET_EVENTS } from './socketEvents.js';
 
 // Room template enum
 export enum RoomTemplate {
