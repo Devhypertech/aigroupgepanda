@@ -2,13 +2,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@gepanda/shared": ["packages/shared/src"]
+      "@gepanda/shared": ["packages/shared/dist"]
     }
-  },
-  "references": [
-    { "path": "./apps/api" },
-    { "path": "./apps/web" },
-    { "path": "./packages/shared" }
-  ]
+  }
 }
 
