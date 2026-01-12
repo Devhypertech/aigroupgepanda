@@ -4,17 +4,28 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Create Prisma client - will fail gracefully if DATABASE_URL is missing when used
+// Create Prisma client - will fail gracefully if DATABASE_URL is missing
+// PrismaClient constructor throws if DATABASE_URL is missing, so we wrap in try-catch
 // This allows the server to start even without a database connection
-// Note: PrismaClient requires a DATABASE_URL, but we'll let it fail at runtime if not set
-// rather than using a placeholder that could cause confusion
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
+function createPrismaClient(): PrismaClient | null {
+  if (!process.env.DATABASE_URL) {
+    return null;
+  }
 
-if (process.env.NODE_ENV !== 'production') {
+  try {
+    return new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    });
+  } catch (error) {
+    console.warn('⚠️  Failed to create PrismaClient (server will continue without database):', error instanceof Error ? error.message : String(error));
+    return null;
+  }
+}
+
+export const prisma: PrismaClient | null =
+  globalForPrisma.prisma ?? createPrismaClient();
+
+if (process.env.NODE_ENV !== 'production' && prisma) {
   globalForPrisma.prisma = prisma;
 }
 

@@ -96,8 +96,15 @@ app.use('/api/ai', aiRouter);
 // Setup Stream Chat webhooks
 setupStreamWebhooks(app);
 
-const PORT = Number(process.env.PORT || 3001);
+// Parse PORT from environment, default to 3001 for local development
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
+if (isNaN(PORT) || PORT < 1 || PORT > 65535) {
+  console.error(`❌ Invalid PORT value: ${process.env.PORT}. Must be a number between 1 and 65535.`);
+  process.exit(1);
+}
+
+// Ensure only ONE server listener - use httpServer.listen, not app.listen
 httpServer.listen(PORT, '0.0.0.0', async () => {
   console.log(`\n🚀 Server running on 0.0.0.0:${PORT}`);
   console.log(`📡 API base: /`);
@@ -114,7 +121,7 @@ httpServer.listen(PORT, '0.0.0.0', async () => {
   }
 
   // Test database connection (non-blocking)
-  if (process.env.DATABASE_URL) {
+  if (prisma) {
     prisma.$connect()
       .then(() => console.log('✅ Database connection successful'))
       .catch((error) => {

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:shared && npm -w @gepanda/web run build",
+  "buildCommand": "npm run build:vercel:web",
   "devCommand": "npm run dev:web",
   "installCommand": "npm install",
   "framework": null,
