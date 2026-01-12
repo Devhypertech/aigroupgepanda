@@ -1,5 +1,5 @@
-[phases.setup]
-nixPkgs = ["nodejs-20_x"]
+[providers]
+node = "20"
 
 [phases.install]
 cmds = [
@@ -11,6 +11,7 @@ cmds = [
 [phases.build]
 cmds = [
   "npm run build:shared",
+  "npm run build:railway:api",
   "npm -w @gepanda/api run build"
 ]
 
