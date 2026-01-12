@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["nodejs-20_x"]
+
+[phases.install]
+cmds = [
+  "corepack enable",
+  "corepack prepare npm@10.2.0 --activate",
+  "npm install"
+]
+
+[phases.build]
+cmds = ["npm run build:shared && npm -w @gepanda/api run build"]
+
+[start]
+cmd = "npm -w @gepanda/api run start"
