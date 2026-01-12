@@ -18,11 +18,15 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Build shared package
+# Build shared package first (required for API build)
 RUN npm run build:shared
 
 # Build API
-RUN npm -w @gepanda/api run build
+RUN cd apps/api && npm run build
+
+# Verify build output
+RUN test -f apps/api/dist/index.js && echo "✓ index.js exists" || echo "✗ index.js missing"
+RUN test -f apps/api/dist/db/client.js && echo "✓ client.js exists" || echo "✗ client.js missing"
 
 # Expose port
 EXPOSE ${PORT:-3001}
