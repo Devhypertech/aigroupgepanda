@@ -35,6 +35,7 @@ RUN echo "=== Checking build output ===" && \
 # Expose port
 EXPOSE ${PORT:-3001}
 
-# Start the API server
-CMD ["npm", "-w", "@gepanda/api", "run", "start"]
+# Start the API server (run from apps/api directory)
+WORKDIR /app/apps/api
+CMD ["node", "dist/index.js"]
 
