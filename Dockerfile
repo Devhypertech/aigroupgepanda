@@ -6,7 +6,7 @@ RUN corepack enable && corepack prepare npm@10.2.0 --activate
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files first for better layer caching
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
