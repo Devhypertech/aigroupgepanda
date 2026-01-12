@@ -6,6 +6,8 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
   },
+  // Transpile the shared package for Next.js
+  transpilePackages: ['@gepanda/shared'],
 };
 
 module.exports = nextConfig;

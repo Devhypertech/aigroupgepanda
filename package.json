@@ -12,10 +12,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:shared": "npm run dev --workspace=packages/shared",
-    "dev:api": "npm run dev:shared && npm run dev --workspace=apps/api",
-    "dev:web": "npm run dev:shared && npm run dev --workspace=apps/web",
-    "dev": "npm run dev:shared && npm run dev:api & npm run dev:web",
+    "dev:shared": "npm run build:shared",
+    "dev:api": "npm run build:shared && npm run dev --workspace=apps/api",
+    "dev:web": "npm run build:shared && npm run dev --workspace=apps/web",
+    "dev": "npm run build:shared && npm run dev:api & npm run dev:web",
     "build:shared": "npm -w @gepanda/shared run build",
     "build:api": "npm run build:shared && npm -w @gepanda/api run build",
     "build:web": "npm run build:shared && npm -w @gepanda/web run build",
