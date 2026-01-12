@@ -9,7 +9,10 @@ cmds = [
 ]
 
 [phases.build]
-cmds = ["npm run build:shared && npm -w @gepanda/api run build"]
+cmds = [
+  "npm run build:shared",
+  "npm -w @gepanda/api run build"
+]
 
 [start]
 cmd = "npm -w @gepanda/api run start"
