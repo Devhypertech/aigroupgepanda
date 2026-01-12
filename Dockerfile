@@ -21,12 +21,16 @@ COPY . .
 # Build shared package first (required for API build)
 RUN npm run build:shared
 
-# Build API
-RUN cd apps/api && npm run build
+# Build API from root (using workspace command)
+RUN npm -w @gepanda/api run build
 
-# Verify build output
-RUN test -f apps/api/dist/index.js && echo "✓ index.js exists" || echo "✗ index.js missing"
-RUN test -f apps/api/dist/db/client.js && echo "✓ client.js exists" || echo "✗ client.js missing"
+# Verify build output and show import statements
+RUN echo "=== Checking build output ===" && \
+    ls -la apps/api/dist/ && \
+    echo "=== Checking db folder ===" && \
+    ls -la apps/api/dist/db/ && \
+    echo "=== Checking imports in index.js ===" && \
+    grep -n "db/client" apps/api/dist/index.js || echo "No db/client import found"
 
 # Expose port
 EXPOSE ${PORT:-3001}
