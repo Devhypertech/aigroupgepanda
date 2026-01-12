@@ -43,5 +43,7 @@ EXPOSE ${PORT:-3000}
 
 # Start the web server (run from apps/web directory)
 WORKDIR /app/apps/web
+ENV PORT=${PORT:-3000}
+ENV HOSTNAME="0.0.0.0"
 CMD ["npm", "run", "start"]
 
