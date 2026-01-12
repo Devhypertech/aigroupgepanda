@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getRoomIdFromToken } from '../services/invites/memoryStorage';
+import { getRoomIdFromToken } from '../services/invites/memoryStorage.js';
 
 const router = Router();
 

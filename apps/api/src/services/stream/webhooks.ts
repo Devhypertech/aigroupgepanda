@@ -1,8 +1,8 @@
 import type { Express } from 'express';
-import { streamServerClient, AI_COMPANION_USER_ID } from './streamClient';
-import { generateAIReply } from '../ai/orchestrator';
-import { getTripContext } from '../../services/tripContext/memoryStorage';
-import { getOrCreateRoom } from '../../db/rooms';
+import { streamServerClient, AI_COMPANION_USER_ID } from './streamClient.js';
+import { generateAIReply } from '../ai/orchestrator.js';
+import { getTripContext } from '../../services/tripContext/memoryStorage.js';
+import { getOrCreateRoom } from '../../db/rooms.js';
 import { RoomTemplate } from '@gepanda/shared';
 
 // Per-room AI cooldown: roomId -> last AI response timestamp (ms)

@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { createInviteToken } from '../services/invites/memoryStorage';
-import { getTripContext, upsertTripContext, TripContextSchema } from '../services/tripContext/memoryStorage';
-import { prisma } from '../db/client';
+import { createInviteToken } from '../services/invites/memoryStorage.js';
+import { getTripContext, upsertTripContext, TripContextSchema } from '../services/tripContext/memoryStorage.js';
+import { prisma } from '../db/client.js';
 
 const router = Router();
 

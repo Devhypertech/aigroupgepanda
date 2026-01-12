@@ -1,4 +1,4 @@
-import { prisma } from './client';
+import { prisma } from './client.js';
 
 export async function getTripContext(roomId: string) {
   const context = await prisma.tripContext.findUnique({

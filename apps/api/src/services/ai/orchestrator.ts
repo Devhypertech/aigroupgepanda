@@ -1,4 +1,4 @@
-import { callZhipuAI, type ZhipuMessage } from './zhipu';
+import { callZhipuAI, type ZhipuMessage } from './zhipu.js';
 import { RoomTemplate } from '@gepanda/shared';
 
 export interface GenerateAIReplyInput {

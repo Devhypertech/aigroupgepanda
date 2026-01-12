@@ -1,4 +1,4 @@
-import { prisma } from './client';
+import { prisma } from './client.js';
 import { RoomTemplate } from '@gepanda/shared';
 
 export async function getOrCreateRoom(

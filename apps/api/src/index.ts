@@ -34,13 +34,13 @@ console.log(`   DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Loaded' : '⚠�
 import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
-import { prisma } from './db/client';
-import roomsRouter from './routes/rooms';
-import invitesRouter from './routes/invites';
-import streamRouter from './routes/stream';
-import aiRouter from './routes/ai';
-import { initializeAICompanion } from './services/stream/streamClient';
-import { setupStreamWebhooks } from './services/stream/webhooks';
+import { prisma } from './db/client.js';
+import roomsRouter from './routes/rooms.js';
+import invitesRouter from './routes/invites.js';
+import streamRouter from './routes/stream.js';
+import aiRouter from './routes/ai.js';
+import { initializeAICompanion } from './services/stream/streamClient.js';
+import { setupStreamWebhooks } from './services/stream/webhooks.js';
 
 const app = express();
 const httpServer = createServer(app);

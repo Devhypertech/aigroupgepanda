@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { streamServerClient } from '../services/stream/streamClient';
+import { streamServerClient } from '../services/stream/streamClient.js';
 
 const router = Router();
 

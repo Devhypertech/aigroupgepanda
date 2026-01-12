@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { streamServerClient } from '../services/stream/streamClient';
-import { generateAIReply } from '../services/ai/orchestrator';
-import { getTripContext } from '../services/tripContext/memoryStorage';
+import { streamServerClient } from '../services/stream/streamClient.js';
+import { generateAIReply } from '../services/ai/orchestrator.js';
+import { getTripContext } from '../services/tripContext/memoryStorage.js';
 
 const router = Router();
 
