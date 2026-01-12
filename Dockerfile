@@ -18,19 +18,32 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Clean any existing builds
+RUN rm -rf apps/api/dist packages/shared/dist
+
 # Build shared package first (required for API build)
 RUN npm run build:shared
+
+# Verify shared package build
+RUN test -f packages/shared/dist/index.js && \
+    test -f packages/shared/dist/socketEvents.js && \
+    echo "✓ Shared package built successfully" || \
+    (echo "✗ Shared package build failed" && exit 1)
 
 # Build API from root (using workspace command)
 RUN npm -w @gepanda/api run build
 
-# Verify build output and show import statements
-RUN echo "=== Checking build output ===" && \
-    ls -la apps/api/dist/ && \
-    echo "=== Checking db folder ===" && \
-    ls -la apps/api/dist/db/ && \
-    echo "=== Checking imports in index.js ===" && \
-    grep -n "db/client" apps/api/dist/index.js || echo "No db/client import found"
+# Verify API build output
+RUN test -f apps/api/dist/index.js && \
+    test -f apps/api/dist/db/client.js && \
+    echo "✓ API built successfully" || \
+    (echo "✗ API build failed" && exit 1)
+
+# Show critical import statements
+RUN echo "=== Shared package imports ===" && \
+    head -3 packages/shared/dist/index.js && \
+    echo "=== API imports ===" && \
+    grep -n "db/client\|socketEvents" apps/api/dist/index.js | head -5
 
 # Expose port
 EXPOSE ${PORT:-3001}
