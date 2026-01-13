@@ -5,11 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -H 0.0.0.0 -p $PORT",
+    "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
     "lint": "next lint"
   },
   "dependencies": {
-    "@gepanda/shared": "workspace:*",
+    "@gepanda/shared": "0.1.0",
     "next": "14.0.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

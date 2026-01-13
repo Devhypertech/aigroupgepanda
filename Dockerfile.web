@@ -48,6 +48,7 @@ ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
+COPY apps/api/package.json ./apps/api/
 
 # Install only production dependencies (workspace-aware)
 RUN npm ci --omit=dev
