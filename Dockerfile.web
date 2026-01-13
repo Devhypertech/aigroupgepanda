@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:20-alpine AS builder
 
 # Enable corepack for npm version management
 RUN corepack enable && corepack prepare npm@10.2.0 --activate
@@ -12,14 +12,11 @@ COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
 
-# Install dependencies
-RUN npm install
+# Install dependencies using npm ci for reproducible builds
+RUN npm ci
 
 # Copy source code
 COPY . .
-
-# Clean any existing builds
-RUN rm -rf apps/web/.next packages/shared/dist
 
 # Build shared package first (required for web build)
 RUN npm run build:shared
@@ -33,18 +30,40 @@ RUN test -f packages/shared/dist/index.js && \
 # Build web app from root (using workspace command)
 RUN npm -w @gepanda/web run build
 
-# Verify web build output
+# Verify web build output exists
 RUN test -f apps/web/.next/BUILD_ID && \
     echo "✓ Web app built successfully" || \
     (echo "✗ Web app build failed" && exit 1)
 
+# Production stage
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Copy package files for production dependencies
+COPY package.json package-lock.json ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install only production dependencies
+RUN npm ci --omit=dev
+
+# Copy built shared package
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+
+# Copy built Next.js output
+COPY --from=builder /app/apps/web/.next ./apps/web/.next
+COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/apps/web/next.config.js ./apps/web/next.config.js
+COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
+
 # Expose port
 EXPOSE ${PORT:-3000}
 
-# Start the web server (run from apps/web directory)
+# Start the web server
 WORKDIR /app/apps/web
 ENV PORT=${PORT:-3000}
 ENV HOSTNAME="0.0.0.0"
 ENV NODE_ENV=production
-CMD ["npm", "run", "start"]
+CMD ["sh", "-c", "node node_modules/.bin/next start -H 0.0.0.0 -p ${PORT:-3000}"]
 
