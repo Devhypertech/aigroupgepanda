@@ -25,7 +25,7 @@ Error: ENOENT: no such file or directory, open '/app/apps/web/.next/BUILD_ID'
    ```
 4. Set **Start Command** to:
    ```
-   npm run start:web
+   cd apps/web && npx next start
    ```
 5. Set **Root Directory** to: (leave empty or set to repo root)
 6. Deploy
@@ -40,7 +40,7 @@ If Railway is using Nixpacks (auto-detected):
    ```
 3. Set **Start Command** to:
    ```
-   cd apps/web && npm run start
+   cd apps/web && npx next start
    ```
 
 ## Verify

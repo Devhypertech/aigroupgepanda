@@ -45,5 +45,6 @@ EXPOSE ${PORT:-3000}
 WORKDIR /app/apps/web
 ENV PORT=${PORT:-3000}
 ENV HOSTNAME="0.0.0.0"
-CMD ["npm", "run", "start"]
+ENV NODE_ENV=production
+CMD ["npx", "next", "start"]
 
