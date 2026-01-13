@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./socketEvents": {
+      "types": "./dist/socketEvents.d.ts",
+      "default": "./dist/socketEvents.js"
     }
   },
   "scripts": {
