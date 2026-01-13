@@ -12,17 +12,14 @@ import {
   Thread,
 } from 'stream-chat-react';
 import { RoomTemplate } from '@gepanda/shared';
-
-// Get environment variables with fallbacks for development
-const STREAM_API_KEY = process.env.NEXT_PUBLIC_STREAM_API_KEY;
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-// Validate required environment variables
-if (!STREAM_API_KEY) {
-  console.error('⚠️ NEXT_PUBLIC_STREAM_API_KEY is not set. Chat functionality will not work.');
-}
+import { getPublicConfig, validatePublicConfig } from '../lib/config';
 
 export default function Home() {
+  // Get config lazily - only accessed at runtime, not at module scope
+  const config = getPublicConfig();
+  const STREAM_API_KEY = config.streamApiKey;
+  const API_URL = config.apiUrl;
+  
   const [client, setClient] = useState<StreamChat | null>(null);
   const [channel, setChannel] = useState<any>(null);
   const [userId, setUserId] = useState('');
@@ -45,7 +42,8 @@ export default function Home() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteLoading, setInviteLoading] = useState(false);
   const [joiningRoom, setJoiningRoom] = useState(false);
-  const [envError, setEnvError] = useState<string | null>(!STREAM_API_KEY ? 'NEXT_PUBLIC_STREAM_API_KEY is not set. Please configure it in your environment variables.' : null);
+  // Validate config lazily at component initialization
+  const [envError, setEnvError] = useState<string | null>(() => validatePublicConfig());
   
   // Cooldown to prevent duplicate AI requests (10 seconds)
   const lastAiRequest = useRef<Map<string, number>>(new Map());
