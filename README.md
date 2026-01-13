@@ -113,3 +113,16 @@ npx prisma generate
 - Message persistence with PostgreSQL
 - Room membership tracking
 
+## Deployment Notes
+
+### Railway Deployment
+
+**Important:** When deploying to Railway, if you change any `NEXT_PUBLIC_*` environment variables, you **must redeploy** the application. Next.js compiles these variables at build time, so changes to `NEXT_PUBLIC_*` variables require a new build to take effect.
+
+To redeploy on Railway:
+1. Go to your Railway project dashboard
+2. Click on your service
+3. Click "Redeploy" or trigger a new deployment
+
+This ensures that the new environment variables are baked into the Next.js build.
+

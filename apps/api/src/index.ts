@@ -97,7 +97,7 @@ app.use('/api/ai', aiRouter);
 setupStreamWebhooks(app);
 
 // Parse PORT from environment, default to 3001 for local development
-const PORT = parseInt(process.env.PORT || '3001', 10);
+const PORT = Number(process.env.PORT || 3001);
 
 if (isNaN(PORT) || PORT < 1 || PORT > 65535) {
   console.error(`❌ Invalid PORT value: ${process.env.PORT}. Must be a number between 1 and 65535.`);

@@ -8,6 +8,31 @@ export const metadata: Metadata = {
   description: 'AI-powered group chat for travelers',
 };
 
+// Runtime config check for NEXT_PUBLIC environment variables
+if (typeof window === 'undefined') {
+  // Server-side only - log during build/startup
+  const nextPublicVars = {
+    NEXT_PUBLIC_STREAM_API_KEY: process.env.NEXT_PUBLIC_STREAM_API_KEY,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  };
+  
+  console.log('🔍 NEXT_PUBLIC Environment Variables Status:');
+  Object.entries(nextPublicVars).forEach(([key, value]) => {
+    if (value) {
+      console.log(`   ✓ ${key}: ${value.substring(0, 20)}${value.length > 20 ? '...' : ''}`);
+    } else {
+      console.log(`   ✗ ${key}: NOT SET`);
+    }
+  });
+  
+  if (!nextPublicVars.NEXT_PUBLIC_STREAM_API_KEY) {
+    console.warn('⚠️  NEXT_PUBLIC_STREAM_API_KEY is not set. Chat functionality will not work.');
+  }
+  if (!nextPublicVars.NEXT_PUBLIC_API_URL) {
+    console.warn('⚠️  NEXT_PUBLIC_API_URL is not set. Defaulting to http://localhost:3001');
+  }
+}
+
 export default function RootLayout({
   children,
 }: {
