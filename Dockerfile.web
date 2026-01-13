@@ -38,24 +38,30 @@ RUN test -f apps/web/.next/BUILD_ID && \
 # Production stage
 FROM node:20-alpine AS runner
 
+# Enable corepack for npm version management
+RUN corepack enable && corepack prepare npm@10.2.0 --activate
+
 WORKDIR /app
 
-# Copy package files for production dependencies
+# Copy package files and workspace structure (needed for workspace:* protocol)
 COPY package.json package-lock.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
 
-# Install only production dependencies
+# Copy minimal workspace structure (exclude src, only need package.json for npm ci)
+# We'll copy the built artifacts after npm ci
+RUN mkdir -p apps/web packages/shared
+
+# Install only production dependencies (workspace structure needed for workspace:*)
 RUN npm ci --omit=dev
 
-# Copy built shared package
+# Copy built shared package (overwrite source with built dist)
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 
-# Copy built Next.js output
+# Copy built Next.js output (overwrite source with built .next)
 COPY --from=builder /app/apps/web/.next ./apps/web/.next
 COPY --from=builder /app/apps/web/public ./apps/web/public
 COPY --from=builder /app/apps/web/next.config.js ./apps/web/next.config.js
-COPY --from=builder /app/apps/web/package.json ./apps/web/package.json
 
 # Expose port
 EXPOSE ${PORT:-3000}
