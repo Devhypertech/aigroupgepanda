@@ -1,6 +1,51 @@
 // Re-export socket event constants
 export { SOCKET_EVENTS } from './socketEvents.js';
 
+// Feed types
+export type { FeedItem, FeedItemType, FeedItemCategory, FeedResponse } from './feed.js';
+
+// UI Spec types
+export type {
+  UiSpec,
+  Widget,
+  ButtonWidget,
+  ChipsWidget,
+  SliderWidget,
+  InputWidget,
+  CardWidget,
+  ChecklistWidget,
+  DatePickerWidget,
+  SectionWidget,
+  RowWidget,
+  ColumnWidget,
+  GridWidget,
+  FormWidget,
+  CheckoutWidget,
+  PlanningWidget,
+  Action,
+  EventAction,
+} from './ui.js';
+export {
+  UiSpecSchema,
+  WidgetSchema,
+  ButtonWidgetSchema,
+  ChipsWidgetSchema,
+  SliderWidgetSchema,
+  InputWidgetSchema,
+  CardWidgetSchema,
+  ChecklistWidgetSchema,
+  DatePickerWidgetSchema,
+  SectionWidgetSchema,
+  RowWidgetSchema,
+  ColumnWidgetSchema,
+  GridWidgetSchema,
+  FormWidgetSchema,
+  CheckoutWidgetSchema,
+  PlanningWidgetSchema,
+  ActionSchema,
+  EventActionSchema,
+} from './ui.js';
+
 // Room template enum
 export enum RoomTemplate {
   TRAVEL_PLANNING = 'TRAVEL_PLANNING',

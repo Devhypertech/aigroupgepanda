@@ -3,8 +3,19 @@ import { streamServerClient } from '../services/stream/streamClient.js';
 
 const router = Router();
 
-// POST /api/stream/token - Generate Stream Chat token for a user
+// GET /api/stream/token - Help message (browser opens as GET)
+router.get('/token', (_req, res) => {
+  res.status(405).json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST. Use Postman or the app.',
+    usage: 'POST /api/stream/token with body: { "userId": "string", "username": "string" }',
+    testPage: 'http://localhost:3000/dev',
+  });
+});
+
+// POST /api/stream/token - Generate Stream Chat token for a user.
 router.post('/token', async (req, res) => {
+  const startTime = Date.now();
   try {
     console.log('[Backend] Token request received:', { userId: req.body.userId, username: req.body.username });
     const { userId, username } = req.body;
@@ -15,21 +26,39 @@ router.post('/token', async (req, res) => {
     }
 
     console.log('[Backend] Upserting user in Stream...');
-    // Create or update user in Stream
-    await streamServerClient.upsertUser({
+    console.log('[Backend] Stream client check:', {
+      hasClient: !!streamServerClient,
+      apiKey: process.env.STREAM_API_KEY ? `${process.env.STREAM_API_KEY.substring(0, 10)}...` : 'MISSING',
+      hasSecret: !!process.env.STREAM_API_SECRET,
+    });
+    const upsertStart = Date.now();
+    // Create or update user in Stream with timeout
+    // Note: upsertUser requires the client to have a secret key set
+    const upsertPromise = streamServerClient.upsertUser({
       id: userId,
       name: username,
     });
-    console.log('[Backend] User upserted successfully');
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('upsertUser timeout after 5s')), 5000)
+    );
+    await Promise.race([upsertPromise, timeoutPromise]);
+    console.log(`[Backend] User upserted successfully (${Date.now() - upsertStart}ms)`);
 
     console.log('[Backend] Generating token...');
+    const tokenStart = Date.now();
     // Generate token for the user
     const token = streamServerClient.createToken(userId);
-    console.log('[Backend] Token generated successfully');
+    console.log(`[Backend] Token generated successfully (${Date.now() - tokenStart}ms)`);
 
+    console.log(`[Backend] Total token request time: ${Date.now() - startTime}ms`);
     res.json({ token, userId });
   } catch (error) {
     console.error('[Backend] Error generating Stream token:', error);
+    console.error('[Backend] Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      duration: Date.now() - startTime,
+    });
     res.status(500).json({ 
       error: 'Failed to generate token',
       message: error instanceof Error ? error.message : 'Unknown error'

@@ -1,0 +1,191 @@
+{
+  "trip_plan_example": {
+    "text": "I'll help you plan your trip to Bali! Fill out the details below and I'll create a personalized itinerary for you.",
+    "ui": {
+      "type": "trip_plan",
+      "widgets": [
+        {
+          "id": "destination",
+          "kind": "input",
+          "label": "Destination",
+          "value": "Bali",
+          "placeholder": "Enter destination"
+        },
+        {
+          "id": "startDate",
+          "kind": "datepicker",
+          "label": "Start Date",
+          "value": "",
+          "mode": "single"
+        },
+        {
+          "id": "endDate",
+          "kind": "datepicker",
+          "label": "End Date",
+          "value": "",
+          "mode": "single"
+        },
+        {
+          "id": "budget",
+          "kind": "slider",
+          "label": "Budget (USD)",
+          "min": 500,
+          "max": 10000,
+          "value": 2000
+        },
+        {
+          "id": "travelStyle",
+          "kind": "dropdown",
+          "label": "Travel Style",
+          "options": ["Relaxed", "Adventure", "Cultural", "Foodie", "Luxury", "Budget"],
+          "value": ""
+        },
+        {
+          "id": "includeFlights",
+          "kind": "toggle",
+          "label": "Include Flights",
+          "checked": false
+        },
+        {
+          "id": "includeHotels",
+          "kind": "toggle",
+          "label": "Include Hotels",
+          "checked": true
+        },
+        {
+          "id": "includeActivities",
+          "kind": "toggle",
+          "label": "Include Activities",
+          "checked": true
+        },
+        {
+          "id": "generateItinerary",
+          "kind": "button",
+          "label": "Generate Itinerary",
+          "action": {
+            "type": "event",
+            "name": "generate_itinerary"
+          }
+        }
+      ]
+    }
+  },
+  "flight_search_example": {
+    "text": "I can help you find flights! Please provide your travel details below.",
+    "ui": {
+      "type": "flight_search",
+      "widgets": [
+        {
+          "id": "from",
+          "kind": "input",
+          "label": "From",
+          "placeholder": "Departure city",
+          "value": ""
+        },
+        {
+          "id": "to",
+          "kind": "input",
+          "label": "To",
+          "placeholder": "Destination city",
+          "value": ""
+        },
+        {
+          "id": "departureDate",
+          "kind": "datepicker",
+          "label": "Departure Date",
+          "value": "",
+          "mode": "single"
+        },
+        {
+          "id": "returnDate",
+          "kind": "datepicker",
+          "label": "Return Date (Optional)",
+          "value": "",
+          "mode": "single"
+        },
+        {
+          "id": "passengers",
+          "kind": "number",
+          "label": "Passengers",
+          "value": 1,
+          "min": 1,
+          "max": 9
+        },
+        {
+          "id": "budget",
+          "kind": "number",
+          "label": "Budget (USD)",
+          "value": 0,
+          "placeholder": "Optional"
+        },
+        {
+          "id": "searchFlights",
+          "kind": "button",
+          "label": "Search Flights",
+          "action": {
+            "type": "event",
+            "name": "search_flights"
+          }
+        }
+      ]
+    }
+  },
+  "product_list_example": {
+    "text": "Here are some great travel products and deals I found for you:",
+    "ui": {
+      "type": "product_list",
+      "cards": [
+        {
+          "id": "product_1",
+          "title": "Japan Rail Pass - 7 Days",
+          "description": "Unlimited travel on JR trains across Japan",
+          "imageUrl": "https://picsum.photos/seed/jrpass/400/200",
+          "price": "$299",
+          "actions": [
+            {
+              "type": "event",
+              "name": "view_product",
+              "payload": {
+                "productId": "product_1"
+              }
+            }
+          ]
+        },
+        {
+          "id": "product_2",
+          "title": "eSIM for Asia - 10GB",
+          "description": "Stay connected in 20+ Asian countries",
+          "imageUrl": "https://picsum.photos/seed/esim/400/200",
+          "price": "$19",
+          "actions": [
+            {
+              "type": "event",
+              "name": "view_product",
+              "payload": {
+                "productId": "product_2"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "summary_example": {
+    "text": "Here's a summary of the article:",
+    "ui": {
+      "type": "summary",
+      "widgets": [
+        {
+          "id": "whyThisMatters",
+          "kind": "button",
+          "label": "Why This Matters",
+          "action": {
+            "type": "event",
+            "name": "show_summary"
+          }
+        }
+      ]
+    }
+  }
+}
+

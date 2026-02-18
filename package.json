@@ -21,11 +21,13 @@
     "build:web": "npm run build:shared && npm -w @gepanda/web run build",
     "build:all": "npm run build:shared && npm run build:api && npm run build:web",
     "build": "npm run build:all",
+    "start:api": "npm -w @gepanda/api run start",
+    "start:web": "npm -w @gepanda/web run start",
+    "start": "npm run start:api & npm run start:web",
+    "lint": "npm run lint --workspace=apps/web",
     "build:railway:api": "corepack enable && corepack prepare npm@10.2.0 --activate && npm install && npm run build:shared && npm -w @gepanda/api run build",
     "build:railway:web": "corepack enable && corepack prepare npm@10.2.0 --activate && npm install && npm run build:shared && npm -w @gepanda/web run build",
-    "build:vercel:web": "npm install && npm run build:shared && npm -w @gepanda/web run build",
-    "start:api": "npm -w @gepanda/api run start",
-    "start:web": "npm -w @gepanda/web run start"
+    "build:vercel:web": "npm install && npm run build:shared && npm -w @gepanda/web run build"
   },
   "dependencies": {
     "getstream": "^8.8.0"

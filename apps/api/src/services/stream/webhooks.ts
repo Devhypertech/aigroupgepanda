@@ -1,13 +1,12 @@
 import type { Express } from 'express';
 import { streamServerClient, AI_COMPANION_USER_ID } from './streamClient.js';
-import { generateAIReply } from '../ai/orchestrator.js';
-import { getTripContext } from '../../services/tripContext/memoryStorage.js';
-import { getOrCreateRoom } from '../../db/rooms.js';
-import { RoomTemplate } from '@gepanda/shared';
+import { processMessage } from '../../agent/index.js';
+import { validateAndEnforceAiOnlyMembership } from './channelValidator.js';
 
-// Per-room AI cooldown: roomId -> last AI response timestamp (ms)
-const roomAiCooldown = new Map<string, number>();
-const AI_COOLDOWN_MS = 10000; // 10 seconds
+// Track which messages AI has already responded to (deduplication)
+const processedMessageIds = new Set<string>();
+// Clean up old message IDs periodically (keep last 1000)
+const MAX_PROCESSED_MESSAGES = 1000;
 
 export function setupStreamWebhooks(app: Express) {
   // Webhook endpoint for Stream Chat events
@@ -18,9 +17,17 @@ export function setupStreamWebhooks(app: Express) {
       // Verify webhook signature (in production, verify with Stream secret)
       // For MVP, we'll skip verification
 
-      console.log('Stream webhook event:', event.type);
+      console.log('[Webhook] Received event:', {
+        type: event.type,
+        hasMessage: !!event.message,
+        hasChannel: !!event.channel,
+        timestamp: new Date().toISOString(),
+      });
 
       // Handle message.new event - trigger AI automatically for all human messages
+      // NOTE: Frontend now calls /api/chat/respond for UI widgets, so webhook is backup only
+      // Skip webhook processing for companion channels to avoid duplicate AI responses
+      // Companion channels use the new chat API with UI widgets
       if (event.type === 'message.new') {
         const message = event.message;
         const channel = event.channel;
@@ -42,100 +49,99 @@ export function setupStreamWebhooks(app: Express) {
           return res.json({ received: true });
         }
 
+        // Skip companion channels - they use the new /api/chat/respond endpoint
+        if (channelId.startsWith('ai-') || channelId.startsWith('ai_user_')) {
+          console.log(`[Webhook] Skipping companion channel ${channelId} - using new chat API`);
+          return res.json({ received: true });
+        }
+
+        // Deduplicate: Check if we already processed this message
+        if (processedMessageIds.has(message.id)) {
+          console.log(`[Webhook] Message ${message.id} already processed, skipping`);
+          return res.json({ received: true });
+        }
+
+        // Mark as processing
+        processedMessageIds.add(message.id);
+        
+        // Clean up old message IDs if needed
+        if (processedMessageIds.size > MAX_PROCESSED_MESSAGES) {
+          const idsArray = Array.from(processedMessageIds);
+          processedMessageIds.clear();
+          // Keep last 500
+          idsArray.slice(-500).forEach(id => processedMessageIds.add(id));
+        }
+
+        // ALWAYS enforce AI-only channel membership
+        const userId = message.user?.id || '';
+        if (userId && channelId.startsWith(`ai_user_${userId}`)) {
+          await validateAndEnforceAiOnlyMembership(channelId, userId);
+        }
+
         // Check if message has text content (skip empty messages)
         const messageText = (message.text || '').trim();
         if (!messageText) {
+          processedMessageIds.delete(message.id); // Allow retry for empty messages
           return res.json({ received: true });
         }
 
-        // Check cooldown to prevent spam
-        const lastAiResponse = roomAiCooldown.get(channelId);
-        const now = Date.now();
-
-        if (lastAiResponse && (now - lastAiResponse) < AI_COOLDOWN_MS) {
-          const remainingSeconds = Math.ceil((AI_COOLDOWN_MS - (now - lastAiResponse)) / 1000);
-          console.log(`[Webhook] AI cooldown active for channel ${channelId}, ${remainingSeconds}s remaining`);
-          return res.json({ received: true });
-        }
-
-        // Get recent messages to check if AI already responded and to get context
+        // Get recent messages for context
         const channelType = channel?.cid?.split(':')[0] || 'messaging';
         const channelInstance = streamServerClient.channel(channelType, channelId);
-        const messagesResponse = await channelInstance.query({
-          messages: { limit: 10 },
-        });
-        const recentMessages = messagesResponse.messages || [];
-        
-        // Check if AI already replied to the most recent message
-        // If the most recent message (before current) is from AI, skip (AI already responded)
-        if (recentMessages.length > 0) {
-          const mostRecentMessage = recentMessages[0];
-          // If the most recent message is from AI and it's not the current message, skip
-          if (mostRecentMessage.id !== message.id && mostRecentMessage.user?.id === AI_COMPANION_USER_ID) {
-            console.log('[Webhook] AI already responded to the most recent message, skipping');
-            return res.json({ received: true });
-          }
+        let recentMessages: any[] = [];
+        try {
+          const messagesResponse = await channelInstance.query({
+            messages: { limit: 10 },
+          });
+          recentMessages = messagesResponse.messages || [];
+        } catch (error) {
+          console.error('[Webhook] Error fetching recent messages:', error);
+          // Continue without recent messages context
         }
 
-        console.log('[Webhook] Auto-triggering AI response for human message:', {
+        console.log('[Webhook] ✅ Processing human message:', {
           messageId: message.id,
           userId: message.user?.id,
           username: message.user?.name,
+          channelId,
           textPreview: messageText.substring(0, 50),
+          textLength: messageText.length,
         });
 
         // Recent messages already fetched above for duplicate check, reuse them for context
 
-        // Extract room ID from channel ID (remove "room-" prefix if present)
-        const roomId = channelId.startsWith('room-') ? channelId.replace('room-', '') : channelId;
-
-        // Get room template from DB (if available)
-        let roomTemplate = RoomTemplate.TRAVEL_PLANNING;
-        try {
-          const room = await getOrCreateRoom(roomId, RoomTemplate.TRAVEL_PLANNING);
-          roomTemplate = room.template as RoomTemplate;
-        } catch (error) {
-          console.warn('Could not get room template, using default');
-        }
-
-        // Get trip context if available
-        let tripContext: any = undefined;
-        try {
-          const contextRecord = getTripContext(roomId);
-          tripContext = contextRecord?.data || undefined;
-        } catch (error) {
-          console.warn('Could not get trip context');
-        }
-
-        // Generate AI reply
-        const aiReply = await generateAIReply({
-          roomId,
-          roomTemplate,
-          triggeringMessage: {
-            id: message.id,
-            text: messageText, // Use full message text (no prefix stripping needed)
-            userId: message.user?.id || '',
-            username: message.user?.name || '',
-          },
+        // Process message with agent
+        // Agent handles memory loading, trip context, and all orchestration internally
+        const agentResponse = await processMessage({
+          userId: message.user?.id || '',
+          channelId,
+          messageText,
           recentMessages: recentMessages.map((msg: any) => ({
-            id: msg.id,
             text: msg.text || '',
             userId: msg.user?.id || '',
             username: msg.user?.name || '',
             kind: msg.user?.id === AI_COMPANION_USER_ID ? 'AI' : 'USER',
           })),
-          tripContext,
         });
 
-        // Send AI reply as the AI Companion user
-        await channelInstance.sendMessage({
-          text: aiReply.replyText,
-          user_id: AI_COMPANION_USER_ID,
-        });
+        // Post assistant reply back to same channel
+        try {
+          await channelInstance.sendMessage({
+            text: agentResponse.text,
+            user_id: AI_COMPANION_USER_ID,
+          });
 
-        // Set cooldown
-        roomAiCooldown.set(channelId, now);
-        console.log(`[Webhook] AI reply sent in channel ${channelId}`);
+          console.log(`[Webhook] AI reply posted to channel ${channelId}:`, {
+            messageId: message.id,
+            responseLength: agentResponse.text.length,
+            intent: agentResponse.intent,
+          });
+        } catch (error) {
+          console.error('[Webhook] Error posting AI message to Stream:', error);
+          // Remove from processed set so it can be retried
+          processedMessageIds.delete(message.id);
+          // Don't throw - webhook was acknowledged, just log the error
+        }
       }
 
       res.json({ received: true });

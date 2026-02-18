@@ -1,128 +1,190 @@
-# Gepanda AI Group Chat
+# GePanda AI GroupChat
 
-AI-powered group chat for travelers built with Next.js, Express, Socket.IO, and PostgreSQL.
+A full-stack AI-powered group chat application with travel planning, shopping, and social feed features.
 
-## Prerequisites
+## 🚀 Quick Start
 
-- Node.js 18+
-- Docker and Docker Compose
-- npm or yarn
+### Prerequisites
 
-## Local Development Setup
+- **Node.js** >= 20
+- **npm** >= 10
+- **PostgreSQL** database (for API)
+- Environment variables configured (see [Environment Variables](#environment-variables))
 
-### 1. Start PostgreSQL Database
-
-```bash
-cd infra
-docker-compose up -d
-```
-
-This starts a PostgreSQL container on port 5432 with:
-- Database: `gepanda_dev`
-- User: `gepanda`
-- Password: `gepanda`
-
-### 2. Install Dependencies
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/yourusername/gepanda-ai-groupchat.git
+cd gepanda-ai-groupchat
+
+# Install dependencies
 npm install
 ```
 
-### 3. Set Up Environment Variables
+## 🛠️ Development
 
-Create a `.env` file in the root directory:
-
-```bash
-cp .env.example .env
-```
-
-Or manually create `.env` with:
-
-```
-DATABASE_URL="postgresql://gepanda:gepanda@localhost:5432/gepanda_dev?schema=public"
-```
-
-### 4. Run Prisma Migrations
+### Running Locally
 
 ```bash
-cd apps/api
-npx prisma migrate dev --name init
+# Start both API and web servers in development mode
+npm run dev
+
+# Or run separately:
+npm run dev:api    # API server on http://localhost:3001
+npm run dev:web    # Web app on http://localhost:3000
 ```
 
-This creates the database schema and generates the Prisma client.
+The development servers will:
+- **API**: Run on port 3001 with hot reload (using `tsx watch`)
+- **Web**: Run on port 3000 with Next.js hot reload
 
-### 5. Start the Development Servers
-
-In separate terminals:
-
-**Terminal 1 - API Server:**
-```bash
-npm run dev:api
-```
-
-**Terminal 2 - Web App:**
-```bash
-npm run dev:web
-```
-
-### 6. Access the Application
-
-- Web App: http://localhost:3000
-- API Server: http://localhost:3001
-
-## Database Management
-
-### View Database with Prisma Studio
-
-```bash
-cd apps/api
-npx prisma studio
-```
-
-### Reset Database
-
-```bash
-cd apps/api
-npx prisma migrate reset
-```
-
-### Generate Prisma Client
-
-```bash
-cd apps/api
-npx prisma generate
-```
-
-## Project Structure
+### Project Structure
 
 ```
+gepanda-ai-groupchat/
 ├── apps/
-│   ├── api/          # Express + Socket.IO backend
-│   └── web/          # Next.js frontend
+│   ├── api/          # Node.js/Express API server (TypeScript)
+│   │   ├── src/      # Source code
+│   │   └── dist/     # Compiled output (generated)
+│   └── web/          # Next.js frontend (TypeScript)
+│       ├── app/      # Next.js app directory
+│       └── .next/    # Build output (generated)
 ├── packages/
-│   └── shared/       # Shared TypeScript types
-├── prisma/           # Prisma schema and migrations
-└── infra/            # Docker Compose for PostgreSQL
+│   └── shared/       # Shared TypeScript package
+└── package.json      # Root package.json with workspace scripts
 ```
 
-## Features
+## 📦 Production Build
 
-- Real-time chat with Socket.IO
-- AI-powered replies when mentioning @AI
-- Room templates (Travel Planning, Live Trip, etc.)
-- Message persistence with PostgreSQL
-- Room membership tracking
+### Build Everything
 
-## Deployment Notes
+```bash
+# Build all packages (shared → API → web)
+npm run build
+```
 
-### Railway Deployment
+This will:
+1. Build the shared package
+2. Compile TypeScript API to `apps/api/dist/`
+3. Build Next.js app to `apps/web/.next/`
 
-**Important:** When deploying to Railway, if you change any `NEXT_PUBLIC_*` environment variables, you **must redeploy** the application. Next.js compiles these variables at build time, so changes to `NEXT_PUBLIC_*` variables require a new build to take effect.
+### Start Production Servers
 
-To redeploy on Railway:
-1. Go to your Railway project dashboard
-2. Click on your service
-3. Click "Redeploy" or trigger a new deployment
+```bash
+# Start both API and web in production mode
+npm run start
 
-This ensures that the new environment variables are baked into the Next.js build.
+# Or start separately:
+npm run start:api    # Runs node dist/index.js
+npm run start:web    # Runs next start
+```
 
+## 🔐 Environment Variables
+
+### API Server (`apps/api/.env`)
+
+Create `apps/api/.env` with:
+
+**Required:**
+```bash
+DATABASE_URL=postgresql://user:password@localhost:5432/gepanda
+STREAM_API_KEY=your_stream_api_key
+STREAM_API_SECRET=your_stream_api_secret
+ZHIPU_API_KEY=your_zhipu_api_key
+JWT_SECRET=your_jwt_secret
+```
+
+**Optional (enable additional features):**
+```bash
+SERPAPI_API_KEY=your_serpapi_key          # Google Shopping search
+DOBA_PUBLIC_KEY=your_doba_public_key      # Product catalog
+DOBA_PRIVATE_KEY=your_doba_private_key
+CROSSMINT_API_KEY=your_crossmint_key      # Checkout/payment
+TRAVELPAYOUTS_API_KEY=your_travel_key     # Flight/hotel search
+```
+
+See [`ENV_TEMPLATES.md`](./ENV_TEMPLATES.md) for complete template.
+
+### Web App (`apps/web/.env.local`)
+
+Create `apps/web/.env.local` with:
+
+**Required:**
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_STREAM_API_KEY=your_stream_api_key
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret
+```
+
+**Optional:**
+```bash
+GOOGLE_CLIENT_ID=your_google_client_id     # Google OAuth
+GOOGLE_CLIENT_SECRET=your_google_secret
+```
+
+See [`ENV_TEMPLATES.md`](./ENV_TEMPLATES.md) for complete template.
+
+## 📚 Documentation
+
+- **[PRODUCTION_BUILD.md](./PRODUCTION_BUILD.md)** - Detailed production build and deployment guide
+- **[ENV_TEMPLATES.md](./ENV_TEMPLATES.md)** - Complete environment variable templates
+
+## 🧪 Available Scripts
+
+### Root Level
+
+- `npm run dev` - Start both API and web in development mode
+- `npm run build` - Build all packages for production
+- `npm run start` - Start both API and web in production mode
+- `npm run lint` - Run Next.js linter
+
+### Individual Workspaces
+
+- `npm run dev:api` / `npm run dev:web` - Start individual services
+- `npm run build:api` / `npm run build:web` - Build individual services
+- `npm run start:api` / `npm run start:web` - Start individual services
+
+## 🚢 Deployment
+
+### Railway (API)
+
+```bash
+# Railway-specific build command
+npm run build:railway:api
+```
+
+Set environment variables in Railway dashboard.
+
+### Vercel (Web)
+
+```bash
+# Vercel-specific build command
+npm run build:vercel:web
+```
+
+Set environment variables in Vercel project settings.
+
+See [`PRODUCTION_BUILD.md`](./PRODUCTION_BUILD.md) for detailed deployment instructions.
+
+## 🏗️ Tech Stack
+
+- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
+- **Backend**: Node.js, Express, TypeScript
+- **Database**: PostgreSQL (via Prisma)
+- **Chat**: Stream Chat
+- **AI**: Zhipu GLM-4 Flash
+- **Auth**: NextAuth.js
+
+## 📝 License
+
+[Add your license here]
+
+## 🤝 Contributing
+
+[Add contributing guidelines here]
+
+## 📧 Support
+
+[Add support contact information here]

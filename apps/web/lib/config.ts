@@ -19,10 +19,18 @@
  */
 export function getPublicConfig() {
   // Lazy evaluation - process.env is only accessed when this function is called
-  // This prevents build-time crashes and allows static generation to work
+  // NEVER include TRAVELPAYOUTS_TOKEN - server-only, must not be exposed to browser
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  
+  // Log in development to help debug
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+    console.log('[Config] API URL:', apiUrl);
+  }
+  
   return {
     streamApiKey: process.env.NEXT_PUBLIC_STREAM_API_KEY || undefined,
-    apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
+    apiUrl,
+    travelpayoutsMarker: process.env.NEXT_PUBLIC_TRAVELPAYOUTS_MARKER || '613624',
   };
 }
 

@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 import './globals.css';
 // Import Stream Chat React CSS - required for proper styling
 import 'stream-chat-react/dist/css/v2/index.css';
+import { Providers } from './providers';
 
 import { getPublicConfig } from '../lib/config';
 
 export const metadata: Metadata = {
-  title: 'Gepanda AI Group Chat',
-  description: 'AI-powered group chat for travelers',
+  title: 'GePanda - AI Travel Companion',
+  description: 'AI-powered travel companion for personalized recommendations',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
 };
 
 // Lazy function to log config status - only called when needed, not at module scope
@@ -38,9 +40,15 @@ export default function RootLayout({
   logConfigStatus();
   
   return (
-    <html lang="en" style={{ height: '100%', backgroundColor: '#0a0a0a' }}>
-      <body style={{ height: '100%', margin: 0, padding: 0, backgroundColor: '#0a0a0a' }}>{children}</body>
+    <html lang="en" className="h-full">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+      </head>
+      <body className="h-full m-0 p-0 bg-gp-bg text-gp-text overflow-x-hidden antialiased">
+        <Providers>
+          {children}
+        </Providers>
+      </body>
     </html>
   );
 }
-

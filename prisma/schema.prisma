@@ -98,3 +98,204 @@ model MessageReaction {
   @@map("message_reactions")
 }
 
+model ChatInvite {
+  id          String    @id @default(uuid())
+  token       String    @unique
+  channelId   String
+  invitedById String
+  maxUses     Int       @default(1)
+  usedCount   Int       @default(0)
+  expiresAt   DateTime?
+  mode        String    @default("group_ai") // "dm_ai" | "group_ai"
+  createdAt   DateTime  @default(now())
+
+  @@index([token])
+  @@index([channelId])
+  @@map("chat_invites")
+}
+
+model StreamMessageDedup {
+  id          String   @id @default(uuid())
+  messageId   String   @unique
+  channelId   String
+  processedAt DateTime @default(now())
+
+  @@index([channelId, processedAt])
+  @@index([messageId])
+  @@map("stream_message_dedup")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String   @unique
+  passwordHash String?  // Hashed password (null for OAuth users)
+  image        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  signals UserSignals?
+  interests UserInterest[]
+  interactions FeedInteraction[]
+
+  @@map("users")
+}
+
+model GuestUser {
+  id        String   @id @default(uuid())
+  name      String   @default("Guest User")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Note: Guest user relations will be added later when models support both User and GuestUser
+  // For now, guest users are handled via separate fields in the models
+
+  @@map("guest_users")
+}
+
+model UserSignals {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  lastIntent     String?  // e.g., destination_search, esim_need, packing, weather
+  destinationsJson Json?  // JSON array of destination strings
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_signals")
+}
+
+model FeedItem {
+  id          String   @id @default(cuid())
+  type        String   // e.g., 'deal', 'article', 'video', 'destination', 'product'
+  category    String?  // e.g., 'travel', 'deals', 'news', 'entertainment'
+  title       String
+  description String   @db.Text
+  mediaUrl    String?  // Image or video URL
+  source      String?  // Source name/URL
+  externalId  String?  // External ID from source (for deduplication)
+  affiliateUrl String? // Affiliate link for deals/products
+  tagsJson    Json?    // JSON array of tags
+  score       Float    @default(0.0) // Base relevance/ranking score
+  affiliateValue Float @default(0.0) // Affiliate value weight (0-1)
+  url         String?  // Optional URL to the original content
+  imageUrl    String?  // Optional image URL (alias for mediaUrl, kept for compatibility)
+  publishedAt DateTime? // Publication date
+  contentSnippet String? @db.Text // Short content snippet
+  lens        String?  // 'traveler' | 'founder' | 'investor'
+  whyThisMatters Json? // AI-generated: { summary: string, why: string, impact: string, actions: { now: string, soon: string, later: string } }
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  interactions FeedInteraction[]
+
+  @@unique([source, externalId])
+  @@unique([source, title])
+  @@index([type])
+  @@index([category])
+  @@index([score])
+  @@index([createdAt])
+  @@index([publishedAt])
+  @@index([lens])
+  @@index([type, category])
+  @@index([source])
+  @@map("feed_items")
+}
+
+model FeedInteraction {
+  id         String   @id @default(cuid())
+  userId     String
+  feedItemId String
+  action     String   // 'click', 'save', 'view', 'like'
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedItem FeedItem @relation(fields: [feedItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, feedItemId, action])
+  @@index([userId])
+  @@index([feedItemId])
+  @@index([userId, action])
+  @@index([createdAt])
+  @@map("feed_interactions")
+}
+
+model Interest {
+  id    String @id @default(cuid())
+  slug  String @unique
+  label String
+  group String // 'travel', 'deals', 'tech', 'lifestyle'
+  createdAt DateTime @default(now())
+
+  userInterests UserInterest[]
+
+  @@index([group])
+  @@index([slug])
+  @@map("interests")
+}
+
+model UserInterest {
+  id         String   @id @default(cuid())
+  userId     String
+  interestId String
+  createdAt  DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interest  Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, interestId])
+  @@index([userId])
+  @@index([interestId])
+  @@map("user_interests")
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
+model ChatSession {
+  id        String   @id @default(cuid())
+  userId    String
+  channelId String   @unique // Stream Chat channel ID (sessionId)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages ChatMessage[]
+
+  @@index([userId])
+  @@index([channelId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  userId    String
+  role      ChatRole
+  text      String   @db.Text
+  ui        Json?    // UI JSON from AI response (nullable)
+  createdAt DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@index([userId])
+  @@map("chat_messages")
+}
+
+model ChatContextProduct {
+  id            String   @id @default(cuid())
+  conversationId String  // ChatSession channelId (sessionId)
+  userId        String
+  query         String   // Search query that generated these products
+  productsJson  Json     // JSON array of product objects
+  createdAt     DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([userId])
+  @@map("chat_context_products")
+}
+

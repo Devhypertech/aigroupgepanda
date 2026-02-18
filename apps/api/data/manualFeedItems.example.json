@@ -1,0 +1,39 @@
+{
+  "deals": [
+    {
+      "title": "50% Off Summer Flights to Europe",
+      "description": "Limited time summer sale! Book flights to major European destinations with 50% discount. Valid until end of month.",
+      "mediaUrl": "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800",
+      "affiliateUrl": "https://example.com/deals/europe-summer?ref=gepanda",
+      "tags": ["europe", "flights", "summer", "sale"],
+      "affiliateValue": 0.95,
+      "externalId": "deal_europe_summer_2024"
+    },
+    {
+      "title": "Luxury Hotel Package: Maldives",
+      "description": "All-inclusive 7-night stay at 5-star resort. Includes breakfast, spa access, and water activities.",
+      "mediaUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
+      "affiliateUrl": "https://example.com/deals/maldives-luxury?ref=gepanda",
+      "tags": ["maldives", "luxury", "hotel", "resort"],
+      "affiliateValue": 0.92,
+      "externalId": "deal_maldives_luxury_2024"
+    }
+  ],
+  "youtubeShorts": [
+    {
+      "title": "Top 10 Hidden Beaches in Thailand",
+      "description": "Discover secret beaches away from the crowds. Perfect for solo travelers and couples.",
+      "videoId": "dQw4w9WgXcQ",
+      "tags": ["thailand", "beaches", "travel", "hidden-gems"],
+      "externalId": "youtube_thailand_beaches_001"
+    },
+    {
+      "title": "Tokyo Street Food Tour in 60 Seconds",
+      "description": "Fast-paced tour of Tokyo's best street food spots. From ramen to takoyaki!",
+      "videoId": "dQw4w9WgXcQ",
+      "tags": ["tokyo", "street-food", "japan", "food-tour"],
+      "externalId": "youtube_tokyo_food_001"
+    }
+  ]
+}
+
