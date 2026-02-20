@@ -12,6 +12,7 @@ import { ChatActionsRow } from './ChatActionsRow';
 import { ButtonWidget } from './ButtonWidget';
 import { ProductCard } from './ProductCard';
 import { HotelCard } from './HotelCard';
+import { FlightResultsCard } from './FlightResultsCard';
 import { getPublicConfig } from '@/lib/config';
 
 interface AssistantRendererProps {
@@ -29,9 +30,23 @@ export function AssistantRenderer({ message, onEvent }: AssistantRendererProps) 
   const parsed = safeParseAssistantContent(message.content);
   const config = getPublicConfig();
   const API_URL = config.apiUrl;
-  
+
+  // Use ui from parsed content or from meta (e.g. when Stream/history returns ui separately)
+  const rawUi = parsed?.ui ?? message.meta?.ui;
+  const ui = rawUi
+    ? {
+        ...rawUi,
+        type:
+          rawUi.type === 'hotel_results'
+            ? 'hotel_list'
+            : rawUi.type === 'flight_results'
+              ? 'flight_list'
+              : rawUi.type,
+      }
+    : null;
+
   // Initialize form data from widget values if available
-  const initialFormData = parsed?.ui?.widgets?.reduce((acc: Record<string, any>, widget: any) => {
+  const initialFormData = ui?.widgets?.reduce((acc: Record<string, any>, widget: any) => {
     if (widget.value !== undefined) {
       acc[widget.id] = widget.value;
     } else if (widget.selected !== undefined) {
@@ -39,19 +54,17 @@ export function AssistantRenderer({ message, onEvent }: AssistantRendererProps) 
     }
     return acc;
   }, {} as Record<string, any>) || {};
-  
+
   const [formData, setFormData] = useState<Record<string, any>>(initialFormData);
 
-  // If no UI, render as plain text
-  if (!parsed || !parsed.ui) {
+  // If no UI, render as plain text (actions always shown when ui is present; no last-message gating)
+  if (!ui) {
     return (
-      <div className="prose prose-invert max-w-none">
+      <div className="prose prose-invert max-w-none" style={{ pointerEvents: 'auto' }}>
         <p className="text-gp-text whitespace-pre-wrap">{parsed?.text || message.content}</p>
       </div>
     );
   }
-
-  const ui = parsed.ui;
   
   // Extract userId from message meta or use a default
   const userId = message.meta?.userId;
@@ -103,6 +116,11 @@ export function AssistantRenderer({ message, onEvent }: AssistantRendererProps) 
 
     if (action?.type === 'call_api' && action.payload) {
       onEvent?.('call_api', action.payload);
+      return;
+    }
+
+    if (action?.type === 'open_modal' && action.payload?.modalType) {
+      onEvent?.('open_modal', action.payload);
       return;
     }
 
@@ -178,8 +196,8 @@ export function AssistantRenderer({ message, onEvent }: AssistantRendererProps) 
     
     return (
       <div className="space-y-4">
-        {parsed.text && (
-          <p className="text-gp-text whitespace-pre-wrap mb-4">{parsed.text}</p>
+        {(parsed?.text ?? message.content) && (
+          <p className="text-gp-text whitespace-pre-wrap mb-4">{parsed?.text ?? message.content}</p>
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {products.map((product: any, idx: number) => (
@@ -194,14 +212,36 @@ export function AssistantRenderer({ message, onEvent }: AssistantRendererProps) 
     );
   }
 
-  // Render hotel_list UI type
-  if (ui.type === 'hotel_list' && ui.items && Array.isArray(ui.items)) {
-    const hotels = ui.items.slice(0, 5); // Limit to 5 hotels
-    
+  // Render flight_list UI type (real flight options with Book Now deeplinks)
+  if (ui.type === 'flight_list' && ui.items && Array.isArray(ui.items)) {
+    const flights = ui.items.slice(0, 10);
+    const displayText = parsed?.text ?? message.content;
     return (
-      <div className="space-y-4">
-        {parsed.text && (
-          <p className="text-gp-text whitespace-pre-wrap mb-4">{parsed.text}</p>
+      <div className="space-y-4" style={{ pointerEvents: 'auto' }}>
+        {displayText && (
+          <p className="text-gp-text whitespace-pre-wrap mb-4">{displayText}</p>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {flights.map((flight: any, idx: number) => (
+            <FlightResultsCard
+              key={flight.id || idx}
+              flight={flight}
+              onAction={handleAction}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Render hotel_list UI type (hotel cards with View/Buy; optional Set City/Dates/Budget buttons)
+  if (ui.type === 'hotel_list' && ui.items && Array.isArray(ui.items)) {
+    const hotels = ui.items.slice(0, 5);
+    const displayText = parsed?.text ?? message.content;
+    return (
+      <div className="space-y-4" style={{ pointerEvents: 'auto' }}>
+        {displayText && (
+          <p className="text-gp-text whitespace-pre-wrap mb-4">{displayText}</p>
         )}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {hotels.map((hotel: any, idx: number) => (
@@ -212,16 +252,45 @@ export function AssistantRenderer({ message, onEvent }: AssistantRendererProps) 
             />
           ))}
         </div>
+        {ui.buttons && Array.isArray(ui.buttons) && ui.buttons.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {ui.buttons.map((btn: any, idx: number) => {
+              const action = btn.action || {};
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (action.type === 'open_modal' && action.payload?.modalType) {
+                      onEvent?.('open_modal', action.payload);
+                    } else if (action.type === 'send_message' && action.payload?.message) {
+                      onEvent?.('send_message', { message: action.payload.message });
+                    } else {
+                      handleAction(action, btn);
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-gp-surface border border-gp-border text-gp-text rounded-lg text-sm hover:bg-gp-hover"
+                  style={{ pointerEvents: 'auto' }}
+                >
+                  {btn.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   }
 
   // Render links UI type
   if (ui.type === 'links' && ui.items && Array.isArray(ui.items)) {
+    const displayText = parsed?.text ?? message.content;
     return (
-      <div className="space-y-4">
-        {parsed.text && (
-          <p className="text-gp-text whitespace-pre-wrap mb-4">{parsed.text}</p>
+      <div className="space-y-4" style={{ pointerEvents: 'auto' }}>
+        {displayText && (
+          <p className="text-gp-text whitespace-pre-wrap mb-4">{displayText}</p>
         )}
         <div className="space-y-2">
           {ui.items.map((link: any, idx: number) => (
@@ -248,12 +317,13 @@ export function AssistantRenderer({ message, onEvent }: AssistantRendererProps) 
     );
   }
 
-  // Render cta_buttons UI type
+  // Render cta_buttons UI type (Set City, Set Dates, Set Budget, etc.)
   if (ui.type === 'cta_buttons' && ui.buttons && Array.isArray(ui.buttons)) {
+    const displayText = parsed?.text ?? message.content;
     return (
-      <div className="space-y-4">
-        {parsed.text && (
-          <p className="text-gp-text whitespace-pre-wrap mb-4">{parsed.text}</p>
+      <div className="space-y-4" style={{ pointerEvents: 'auto' }}>
+        {displayText && (
+          <p className="text-gp-text whitespace-pre-wrap mb-4">{displayText}</p>
         )}
         <div className="flex flex-wrap gap-2">
           {ui.buttons.map((button: any, idx: number) => {
@@ -368,8 +438,8 @@ export function AssistantRenderer({ message, onEvent }: AssistantRendererProps) 
         )}
         
         {/* Render text content if present */}
-        {parsed.text && (
-          <p className="text-gp-text whitespace-pre-wrap mb-4">{parsed.text}</p>
+        {(parsed?.text ?? message.content) && (
+          <p className="text-gp-text whitespace-pre-wrap mb-4">{parsed?.text ?? message.content}</p>
         )}
         
         {/* Render cards if available */}
@@ -606,7 +676,7 @@ export function AssistantRenderer({ message, onEvent }: AssistantRendererProps) 
   // Fallback: render as text
   return (
     <div className="prose prose-invert max-w-none">
-      <p className="text-gp-text whitespace-pre-wrap">{parsed.text || message.content}</p>
+      <p className="text-gp-text whitespace-pre-wrap">{parsed?.text ?? message.content}</p>
     </div>
   );
 }

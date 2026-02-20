@@ -322,9 +322,14 @@ function sanitizeForLog(payload: Record<string, unknown>): Record<string, unknow
 function getBaseUrl(req: NextRequest): string {
   const origin = req.nextUrl?.origin;
   if (origin) return origin;
+  // Vercel provides VERCEL_URL automatically
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  // Use NEXTAUTH_URL if available (set in production)
   if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL;
-  return 'http://localhost:3000';
+  // Fallback for local development only
+  return process.env.NODE_ENV === 'production' 
+    ? 'https://your-domain.vercel.app' // This should never be reached in production
+    : 'http://localhost:3000';
 }
 
 /** Dummy flight generator fallback when API fails or returns empty */
@@ -481,7 +486,6 @@ export async function POST(req: NextRequest) {
       }
 
       case 'search_flights': {
-        // Extract flight params from payload + tripState (same host internal API)
         const payloadTripState = (payload.tripState as Record<string, unknown>) || {};
         const origin = firstNonEmpty<string>(payload.origin, payload.from, payloadTripState.origin, tripState?.origin) || 'NYC';
         const destination = firstNonEmpty<string>(payload.destination, payload.to, payloadTripState.destination, tripState?.destination);
@@ -498,22 +502,25 @@ export async function POST(req: NextRequest) {
             reply: 'Please provide a destination to search for flights.',
             panel: undefined,
             data: { flights: [] },
+            ui: null,
           });
         }
 
-        let flights: Array<{ id: string; airline: string; flightNumber: string; price: number; currency: string; departure: any; arrival: any; duration: string; stops: number; bookingUrl: string }> = [];
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        let flights: Array<{ id?: string; airline: string; flightNumber: string; price: number; currency: string; departure: any; arrival: any; duration: string; stops: number; bookingUrl: string; deeplinkUrl?: string }> = [];
 
         try {
-          const flightsResponse = await fetch(`${baseUrl}/api/tools/flights/search`, {
+          const flightsResponse = await fetch(`${backendUrl}/api/flights/search`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               origin,
               destination: destination.trim(),
-              departureDate,
-              returnDate,
-              passengers,
-              class: flightClass,
+              departDate: departureDate || new Date().toISOString().split('T')[0],
+              returnDate: returnDate || undefined,
+              adults: passengers,
+              cabin: flightClass,
+              directOnly: false,
             }),
           });
 
@@ -552,12 +559,30 @@ export async function POST(req: NextRequest) {
           });
         }
 
+        const flightListUi = {
+          type: 'flight_list' as const,
+          items: flights.map((f) => ({
+            id: f.id,
+            airline: f.airline,
+            flightNumber: f.flightNumber,
+            price: f.price,
+            currency: f.currency || 'USD',
+            stops: f.stops,
+            duration: f.duration,
+            departure: f.departure,
+            arrival: f.arrival,
+            deeplinkUrl: f.deeplinkUrl || f.bookingUrl,
+            bookingUrl: f.bookingUrl || f.deeplinkUrl,
+          })),
+        };
+
         return NextResponse.json({
           reply: flights.length > 0
-            ? `I found ${flights.length} flight option${flights.length > 1 ? 's' : ''} from ${origin} to ${destination}. Check the Flights panel on the right.`
+            ? `I found ${flights.length} flight option${flights.length > 1 ? 's' : ''} from ${origin} to ${destination}. Use "Book Now" to continue.`
             : `No flights found from ${origin} to ${destination}. Please try different dates or destinations.`,
           panel: 'flights',
           data: { flights },
+          ui: flightListUi,
         });
       }
 

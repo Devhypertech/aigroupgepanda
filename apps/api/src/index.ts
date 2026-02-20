@@ -140,7 +140,7 @@ console.log(`   STREAM_FEEDS_API_KEY: ${process.env.STREAM_FEEDS_API_KEY || proc
         console.log(`   ZHIPU_API_KEY: ${process.env.ZHIPU_API_KEY ? '✓ Loaded' : '⚠️  Not set (AI features will not work)'}`);
         console.log(`   DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Loaded' : '⚠️  Not set (database features will not work)'}`);
         console.log(`   RYE_API_KEY: ${process.env.RYE_API_KEY ? '✓ Loaded' : '⚠️  Not set (checkout features will not work)'}`);
-        console.log(`   TRAVELPAYOUTS_API_KEY: ${process.env.TRAVELPAYOUTS_API_KEY ? '✓ Loaded' : '⚠️  Not set (flight/hotel search will use mock data)'}`);
+        console.log(`   TRAVELPAYOUTS_TOKEN/API_KEY: ${(process.env.TRAVELPAYOUTS_TOKEN || process.env.TRAVELPAYOUTS_API_KEY) ? '✓ Loaded' : '⚠️  Not set (flight search will use mock data)'}`);
         console.log(`   DOBA_PUBLIC_KEY: ${process.env.DOBA_PUBLIC_KEY ? '✓ Loaded' : '⚠️  Not set'}`);
         console.log(`   DOBA_PRIVATE_KEY: ${process.env.DOBA_PRIVATE_KEY ? '✓ Loaded' : '⚠️  Not set (product recommendations will use mock data)'}`);
         console.log(`   CROSSMINT_API_KEY: ${process.env.CROSSMINT_API_KEY ? '✓ Loaded' : '⚠️  Not set (checkout link creation will not work)'}`);
@@ -216,6 +216,7 @@ import aiRouter from './routes/ai.js';
 import companionRouter from './routes/companion.js';
 import chatRouter from './routes/chat.js';
 import feedRouter from './routes/feed.js';
+import flightsRouter from './routes/flights.js';
 import { initializeAICompanion } from './services/stream/streamClient.js';
 import { setupStreamWebhooks } from './services/stream/webhooks.js';
 
@@ -362,6 +363,7 @@ const loadRoutes = async () => {
     { name: 'companion', router: companionRouter, path: '/api/companion' },
     { name: 'chat', router: chatRouter, path: '/api/chat' },
     { name: 'feed', router: feedRouter, path: '/api/feed' },
+    { name: 'flights', router: flightsRouter, path: '/api/flights' },
   ];
   
   // Register pre-imported routers first
@@ -508,6 +510,7 @@ const loadRoutes = async () => {
       criticalRoutes: {
         '/api/stream': registeredRoutesList.includes('/api/stream'),
         '/api/companion': registeredRoutesList.includes('/api/companion'),
+        '/api/flights': registeredRoutesList.includes('/api/flights'),
       },
       allRoutes: app._router?.stack?.map((layer: any) => {
         if (layer.route) {
@@ -515,6 +518,26 @@ const loadRoutes = async () => {
         }
         return null;
       }).filter(Boolean) || [],
+    });
+  });
+
+  // Debug: list env keys (mask secrets)
+  app.get('/api/debug/env', (req, res) => {
+    const mask = (v: string) => (v && v.length > 4 ? `${v.substring(0, 4)}***` : '(empty)');
+    const env: Record<string, string> = {};
+    for (const key of Object.keys(process.env).sort()) {
+      if (key.startsWith('TRAVELPAYOUTS_') || key.startsWith('ZHIPU_') || key === 'PORT' || key === 'NODE_ENV') {
+        env[key] = process.env[key] ? mask(process.env[key]) : '(not set)';
+      }
+    }
+    res.json({
+      TRAVELPAYOUTS_TOKEN: env.TRAVELPAYOUTS_TOKEN ?? '(not in list)',
+      TRAVELPAYOUTS_API_KEY: env.TRAVELPAYOUTS_API_KEY ?? '(not in list)',
+      TRAVELPAYOUTS_MARKER: env.TRAVELPAYOUTS_MARKER ?? '(not in list)',
+      TRAVELPAYOUTS_BASE_URL: process.env.TRAVELPAYOUTS_BASE_URL || '(default)',
+      ZHIPU_API_KEY: env.ZHIPU_API_KEY ?? '(not in list)',
+      PORT: process.env.PORT || '3001',
+      NODE_ENV: process.env.NODE_ENV || 'development',
     });
   });
   

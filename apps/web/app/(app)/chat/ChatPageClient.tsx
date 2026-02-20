@@ -696,7 +696,7 @@ export default function ChatPage({ initialFollowUpMessage, initialSessionId }: C
             // Provide more specific error message for fetch failures
             const errorMsg = fetchError?.message || 'Failed to fetch';
             if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError')) {
-              throw new Error(`Cannot connect to API server at ${API_BASE || API_URL}. Make sure the API server is running on port 3001.`);
+              throw new Error(`Cannot connect to API server at ${API_BASE || API_URL}. ${process.env.NODE_ENV === 'production' ? 'Check your NEXT_PUBLIC_API_URL environment variable.' : 'Make sure the API server is running.'}`);
             }
             throw fetchError;
           }
@@ -801,7 +801,7 @@ export default function ChatPage({ initialFollowUpMessage, initialSessionId }: C
           // Provide more specific error message for fetch failures
           const errorMsg = fetchError?.message || 'Failed to fetch';
           if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError') || errorMsg.includes('fetch failed')) {
-            throw new Error(`Cannot connect to API server at ${API_BASE || API_URL}. Make sure the API server is running on port 3001.`);
+            throw new Error(`Cannot connect to API server at ${API_BASE || API_URL}. ${process.env.NODE_ENV === 'production' ? 'Check your NEXT_PUBLIC_API_URL environment variable.' : 'Make sure the API server is running.'}`);
           }
           throw fetchError;
         }
@@ -1116,13 +1116,15 @@ export default function ChatPage({ initialFollowUpMessage, initialSessionId }: C
         
         // Provide more helpful error messages for common issues
         if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('fetch failed')) {
-          msg = `Cannot connect to API server at ${API_URL}
-
-The API server is not running. To fix:
+          const prodMessage = 'Check your NEXT_PUBLIC_API_URL environment variable in Vercel settings.';
+          const devMessage = `The API server is not running. To fix:
 1. Open a new terminal
-2. Run: npm run dev:api  
+2. Run: npm run dev:api
 3. Wait for "Server listening on port 3001"
 4. Click "Try again" below`;
+          msg = `Cannot connect to API server at ${API_URL}
+
+${process.env.NODE_ENV === 'production' ? prodMessage : devMessage}`;
         } else if (msg.includes('Cannot connect to API server')) {
           // Already has helpful message, keep it
         } else if (isTimeout) {
@@ -1550,7 +1552,8 @@ Possible causes:
   const effectiveChannel = channel || channelRef.current;
   const showConnectingSpinner = initStarted && (isConnecting || !effectiveClient || !effectiveChannel);
 
-  const DEV_API_MESSAGE = `Chat needs the API server running on ${API_URL}. 
+  const prodApiMessage = 'Chat needs the API server configured. Check NEXT_PUBLIC_API_URL in Vercel environment variables.';
+  const devApiMessage = `Chat needs the API server running on ${API_URL}. 
 
 To start it:
 1. Open a NEW terminal window
@@ -1558,9 +1561,9 @@ To start it:
 3. Run: npm run dev:api
 
 Or run both servers at once from repo root:
-  npm run dev
-
+npm run dev
 Then click "Try again" below.`;
+  const DEV_API_MESSAGE = process.env.NODE_ENV === 'production' ? prodApiMessage : devApiMessage;
 
   if (envError) {
     const handleRetry = () => {

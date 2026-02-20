@@ -18,6 +18,9 @@ export default function DevPage() {
   const [channelResult, setChannelResult] = useState<Result>(null);
   const [channelLoading, setChannelLoading] = useState(false);
 
+  const [flightResult, setFlightResult] = useState<Result>(null);
+  const [flightLoading, setFlightLoading] = useState(false);
+
   const callToken = async () => {
     setTokenLoading(true);
     setTokenResult(null);
@@ -71,6 +74,44 @@ export default function DevPage() {
       });
     } finally {
       setChannelLoading(false);
+    }
+  };
+
+  const callFlightSearch = async () => {
+    setFlightLoading(true);
+    setFlightResult(null);
+    try {
+      const departDate = new Date();
+      departDate.setDate(departDate.getDate() + 7);
+      const body = {
+        origin: 'JFK',
+        destination: 'LAX',
+        departDate: departDate.toISOString().split('T')[0],
+        adults: 1,
+        cabin: 'economy',
+        directOnly: false,
+      };
+      const res = await fetch(`${API_URL}/api/flights/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const text = await res.text();
+      let formatted = text;
+      try {
+        formatted = JSON.stringify(JSON.parse(text), null, 2);
+      } catch {
+        // leave as raw text
+      }
+      setFlightResult({ status: res.status, body: formatted, ok: res.ok });
+    } catch (err) {
+      setFlightResult({
+        status: 0,
+        body: err instanceof Error ? err.message : String(err),
+        ok: false,
+      });
+    } finally {
+      setFlightLoading(false);
     }
   };
 
@@ -196,6 +237,58 @@ export default function DevPage() {
             </pre>
           </div>
         )}
+      </section>
+
+      <section style={{ marginBottom: 32 }}>
+        <h2 style={{ fontSize: '1.125rem', marginBottom: 12 }}>POST /api/flights/search</h2>
+        <p style={{ color: 'var(--gp-muted)', fontSize: '0.875rem', marginBottom: 12 }}>
+          Body: <code style={{ background: 'var(--gp-surface)', padding: '2px 6px', borderRadius: 4 }}>{'{{ origin, destination, departDate?, returnDate?, adults?, cabin?, directOnly? }}'}</code>
+        </p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+          <button
+            type="button"
+            onClick={callFlightSearch}
+            disabled={flightLoading}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 8,
+              background: 'var(--gp-primary)',
+              color: 'white',
+              border: 'none',
+              cursor: flightLoading ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {flightLoading ? 'Calling…' : 'Test flight search (JFK → LAX)'}
+          </button>
+        </div>
+        {flightResult && (
+          <div style={{ marginTop: 12 }}>
+            <div style={{ marginBottom: 6, fontSize: '0.875rem' }}>
+              Status: <strong style={{ color: flightResult.ok ? 'var(--gp-primary)' : 'var(--gp-error, #e53e3e)' }}>{flightResult.status}</strong>
+            </div>
+            <pre
+              style={{
+                background: 'var(--gp-surface)',
+                padding: 12,
+                borderRadius: 8,
+                overflow: 'auto',
+                fontSize: '0.8125rem',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-all',
+              }}
+            >
+              {flightResult.body}
+            </pre>
+          </div>
+        )}
+      </section>
+
+      <section style={{ marginBottom: 32 }}>
+        <h2 style={{ fontSize: '1.125rem', marginBottom: 12 }}>Debug</h2>
+        <p style={{ color: 'var(--gp-muted)', fontSize: '0.875rem', marginBottom: 12 }}>
+          <a href={`${API_URL}/api/debug/routes`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gp-primary)', marginRight: 16 }}>GET /api/debug/routes</a>
+          <a href={`${API_URL}/api/debug/env`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gp-primary)' }}>GET /api/debug/env</a>
+        </p>
       </section>
 
       <p style={{ fontSize: '0.75rem', color: 'var(--gp-muted)' }}>

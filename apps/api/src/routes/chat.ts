@@ -496,16 +496,77 @@ router.post('/respond', async (req, res) => {
       actionType: action?.type,
     });
     
-    // Detect shopping intent before generating AI response
-    const shoppingKeywords = [
-      'buy', 'purchase', 'find', 'price', 'best', 'cover', 'shoes', 'shirt', 'laptop', 'phone',
-      'headphones', 'watch', 'bag', 'jacket', 'dress', 'product', 'shop', 'shopping', 'store',
-      'amazon', 'ebay', 'walmart', 'target', 'cost', 'affordable', 'cheap', 'expensive', 'deal',
-      'discount', 'sale', 'compare', 'recommend', 'suggest', 'looking for', 'need', 'want to buy'
+    // Detect shopping intent - must be STRICT to avoid false positives
+    // Only trigger on clear shopping-related queries, not general questions
+    const lowerUserMessage = userMessage.toLowerCase().trim();
+    
+    // Strong shopping indicators (require at least one)
+    const strongShoppingKeywords = [
+      'buy', 'purchase', 'shop', 'shopping', 'store', 'amazon', 'ebay', 'walmart', 'target',
+      'want to buy', 'looking to buy', 'need to buy', 'where to buy', 'where can i buy',
+      'add to cart', 'checkout', 'order', 'place an order'
     ];
     
-    const lowerUserMessage = userMessage.toLowerCase();
-    const hasShoppingIntent = shoppingKeywords.some(keyword => lowerUserMessage.includes(keyword));
+    // Product-specific keywords (must be combined with shopping context)
+    const productKeywords = [
+      'laptop', 'phone', 'headphones', 'watch', 'shoes', 'shirt', 'bag', 'jacket', 'dress',
+      'cover', 'case', 'charger', 'cable', 'product', 'item'
+    ];
+    
+    // Negative patterns - exclude these from shopping detection
+    // These patterns indicate informational/educational queries, not shopping
+    const negativePatterns = [
+      /^what (is|are|was|were|does|do|did|can|will|would|should|could)/i,  // "what is/are..." questions
+      /^how (to|do|does|can|will|would|should|did|was|is|are)/i,  // "how to/do..." questions
+      /^why (is|are|do|does|did|was|were|can|will|would|should)/i,       // "why..." questions
+      /^tell me (about|what|how|why)/i,     // informational queries
+      /^explain/i,           // explanation requests
+      /^describe/i,          // description requests
+      /^is (an?|the|this|that|it|there)/i,     // "is a..." questions
+      /^are (you|they|we|these|those|there)/i, // "are you..." questions
+      /\b(color|colour|taste|flavor|flavour|sweet|sour|bitter|sweetness|tartness)\b/i, // food/fruit descriptors
+      /\b(apple|orange|banana|fruit|vegetable|grape|berry|cherry|peach|pear)\b/i, // fruit/vegetable names (unless clearly shopping)
+      /\b(what|which|who|when|where)\s+(is|are|was|were|does|do|did|can|will|would|should|could)\s+/i, // question words
+    ];
+    
+    // Check for negative patterns first - if found, skip shopping detection
+    const hasNegativePattern = negativePatterns.some(pattern => pattern.test(userMessage));
+    
+    // Check for strong shopping keywords
+    const hasStrongShoppingKeyword = strongShoppingKeywords.some(keyword => lowerUserMessage.includes(keyword));
+    
+    // Check for product keywords combined with shopping context
+    const hasProductKeyword = productKeywords.some(keyword => lowerUserMessage.includes(keyword));
+    const hasShoppingContext = lowerUserMessage.includes('price') || 
+                               lowerUserMessage.includes('cost') || 
+                               lowerUserMessage.includes('affordable') ||
+                               lowerUserMessage.includes('cheap') ||
+                               lowerUserMessage.includes('expensive') ||
+                               lowerUserMessage.includes('deal') ||
+                               lowerUserMessage.includes('discount') ||
+                               lowerUserMessage.includes('sale') ||
+                               lowerUserMessage.includes('compare') ||
+                               lowerUserMessage.includes('recommend') && hasProductKeyword ||
+                               lowerUserMessage.includes('suggest') && hasProductKeyword;
+    
+    // Only trigger shopping if:
+    // 1. Has strong shopping keyword, OR
+    // 2. Has product keyword + shopping context
+    // AND no negative patterns
+    const hasShoppingIntent = !hasNegativePattern && (
+      hasStrongShoppingKeyword || 
+      (hasProductKeyword && hasShoppingContext)
+    );
+    
+    // Log intent detection for debugging
+    console.log(`${logPrefix} Intent detection:`, {
+      hasNegativePattern,
+      hasStrongShoppingKeyword,
+      hasProductKeyword,
+      hasShoppingContext,
+      hasShoppingIntent,
+      messagePreview: userMessage.substring(0, 50),
+    });
     
     // Generate AI response using reusable service
     if (!action && userMessage) {
@@ -1618,21 +1679,36 @@ router.post('/respond', async (req, res) => {
         // Don't fail the entire request if hotel search fails - just log and continue
         // The AI response will still be returned, just without hotel data
       }
-    } else if (detectedPanel === 'flights' && ts?.destination) {
-      // Search for flights
-      try {
-        const flightResults = await searchFlights({
-          origin: 'NYC', // Default origin, could be from tripState
-          destination: ts.destination,
-          departureDate: ts.startDate || new Date().toISOString().split('T')[0],
-          returnDate: ts.endDate,
-          passengers: (ts.peopleCount ?? ts.partySize) || 1,
-          class: 'economy',
-        });
-        panelData = { flights: flightResults };
-        console.log('[Chat Respond] Found flights:', flightResults.length);
-      } catch (error) {
-        console.error('[Chat Respond] Error searching flights:', error);
+    } else if (detectedPanel === 'flights') {
+      // Search for flights when we have a destination (tripState or extracted from message)
+      const flightDestination = ts?.destination || extractedDetails.destination;
+      const flightOrigin = (ts as any)?.origin || 'NYC';
+      if (flightDestination) {
+        try {
+          const flightResults = await searchFlights({
+            origin: flightOrigin,
+            destination: flightDestination,
+            departureDate: ts?.startDate || extractedDetails.startDate || new Date().toISOString().split('T')[0],
+            returnDate: ts?.endDate || extractedDetails.endDate,
+            passengers: (ts?.peopleCount ?? (ts as any)?.partySize) || 1,
+            class: 'economy',
+          });
+          panelData = { flights: flightResults };
+          console.log('[Chat Respond] Found flights:', flightResults.length, 'for', flightOrigin, '->', flightDestination);
+        } catch (error) {
+          const errMsg = error instanceof Error ? error.message : '';
+          if (errMsg.includes('provider auth failed')) {
+            console.error('[Chat Respond] Flight search provider auth failed');
+            return res.json({
+              reply: 'Flight search temporarily unavailable (provider auth failed). Please check that TRAVELPAYOUTS_TOKEN is set in the API environment.',
+              panel: undefined,
+              data: {},
+              ui: null,
+              text: 'Flight search temporarily unavailable (provider auth failed). Please check that TRAVELPAYOUTS_TOKEN is set in the API environment.',
+            });
+          }
+          console.error('[Chat Respond] Error searching flights:', error);
+        }
       }
     } else if (detectedPanel === 'itinerary' && ts?.destination) {
       // Generate itinerary using dynamic destination and user inputs
@@ -1805,14 +1881,83 @@ router.post('/respond', async (req, res) => {
       }
     }
 
+    // When we have real flight results, return flight_list UI so chat shows flights with Book buttons
+    let flightListUi: { type: 'flight_list'; items: any[] } | null = null;
+    if (panelData?.flights && Array.isArray(panelData.flights) && panelData.flights.length > 0) {
+      flightListUi = {
+        type: 'flight_list',
+        items: panelData.flights.map((f: any) => ({
+          id: f.id,
+          airline: f.airline,
+          flightNumber: f.flightNumber,
+          price: f.price,
+          currency: f.currency || 'USD',
+          stops: f.stops,
+          duration: f.duration,
+          departure: f.departure,
+          arrival: f.arrival,
+          deeplinkUrl: f.deeplinkUrl || f.bookingUrl,
+          bookingUrl: f.bookingUrl || f.deeplinkUrl,
+        })),
+      };
+    }
+
+    // When we have hotel results, return hotel_list UI so chat shows hotel cards with links
+    let hotelListUi: { type: 'hotel_list'; items: any[]; buttons?: any[] } | null = null;
+    if (panelData?.hotels && Array.isArray(panelData.hotels) && panelData.hotels.length > 0) {
+      hotelListUi = {
+        type: 'hotel_list',
+        items: panelData.hotels.slice(0, 5).map((h: any) => ({
+          id: h.id,
+          title: h.name || h.title,
+          name: h.name || h.title,
+          neighborhood: h.neighborhood,
+          area: h.area,
+          price: h.price ?? h.pricePerNight,
+          pricePerNight: h.pricePerNight ?? h.price,
+          currency: h.currency || 'USD',
+          rating: h.rating,
+          imageUrl: h.imageUrl,
+          url: h.url || h.bookingUrl,
+        })),
+        buttons: [
+          { label: 'Set City', action: { type: 'open_modal', payload: { modalType: 'city' } } },
+          { label: 'Set Dates', action: { type: 'open_modal', payload: { modalType: 'dates' } } },
+          { label: 'Set Budget', action: { type: 'open_modal', payload: { modalType: 'budget' } } },
+        ],
+      };
+    }
+
+    // When user asked for hotels/flights/itinerary but destination (or details) is missing, show Set City/Dates/Budget buttons
+    const needsTripDetails = (detectedPanel === 'hotels' || detectedPanel === 'flights' || detectedPanel === 'itinerary') && !destination;
+    const tripDetailsUi = needsTripDetails
+      ? {
+          type: 'cta_buttons' as const,
+          buttons: [
+            { id: 'set_city', label: 'Set City', action: { type: 'open_modal', payload: { modalType: 'city', modal: 'city' } } },
+            { id: 'set_dates', label: 'Set Dates', action: { type: 'open_modal', payload: { modalType: 'dates', modal: 'dates' } } },
+            { id: 'set_budget', label: 'Set Budget', action: { type: 'open_modal', payload: { modalType: 'budget', modal: 'budget' } } },
+          ],
+        }
+      : null;
+
+    // Prefer structured UI: flight_list > hotel_list > tripDetails cta_buttons > AI uiSpec
+    const responseUi = flightListUi || hotelListUi || tripDetailsUi || uiSpec || null;
+    const replyText = flightListUi
+      ? `I found ${flightListUi.items.length} flight option${flightListUi.items.length === 1 ? '' : 's'} for you. Check the options below and use "Book Now" to continue.`
+      : hotelListUi
+        ? `I found ${hotelListUi.items.length} hotel option${hotelListUi.items.length === 1 ? '' : 's'} for you. Check the options below.`
+        : tripDetailsUi
+          ? (aiResponse.text || 'To get started, tell me your destination and dates. You can use the buttons below.')
+          : (aiResponse.text || 'I received your message.');
+
     // Build structured response
     const response = {
-      reply: aiResponse.text || 'I received your message.',
+      reply: replyText,
       panel: finalPanel,
       data: panelData,
-      ui: uiSpec || null,
-      // Legacy fields for backward compatibility
-      text: aiResponse.text || '',
+      ui: responseUi,
+      text: replyText,
     };
 
     // Validate response structure
@@ -1870,18 +2015,18 @@ router.post('/respond', async (req, res) => {
           user: { id: userId },
         });
 
-        // Post assistant message to Stream with UI if available
+        // Post assistant message to Stream with UI if available (use final response ui so flight_list/hotel_list/cta_buttons are included)
         const assistantMessage: any = {
           text: validated.data.reply,
           user: { id: AI_COMPANION_USER_ID },
         };
 
-        // Attach UI spec if available
-        if (uiSpec) {
+        const uiToAttach = validated.data.ui || null;
+        if (uiToAttach) {
           assistantMessage.attachments = [
             {
               type: 'ui_spec',
-              ui_spec: uiSpec,
+              ui_spec: uiToAttach,
             },
           ];
         }
@@ -2374,51 +2519,69 @@ router.post('/ui/event', async (req, res) => {
       return res.json(response);
     }
 
-    // Handle flight search
+    // Handle flight search (action type "search_flights" from AI or UI)
     if (eventId === 'search_flights') {
       const { from, to, departureDate, returnDate, passengers, class: flightClass } = payload || {};
-      
+      const origin = from || 'NYC';
+      const destination = to || 'LAX';
+      const depDate = departureDate || new Date().toISOString().split('T')[0];
+
       try {
         const { searchFlights } = await import('../services/travel/travelpayouts.js');
         const flights = await searchFlights({
-          origin: from || 'NYC',
-          destination: to || 'LAX',
-          departureDate: departureDate || new Date().toISOString().split('T')[0],
+          origin,
+          destination,
+          departureDate: depDate,
           returnDate,
           passengers: passengers || 1,
           class: flightClass || 'economy',
         });
 
-        const uiSpec: UiSpec = {
-          id: `ui_${Date.now()}`,
-          type: 'cards',
-          title: `Flights from ${from || 'Origin'} to ${to || 'Destination'}`,
-          state: {},
-          widgets: flights.map((flight, idx) => ({
-            kind: 'card' as const,
-            id: `flight_${idx}`,
-            title: `${flight.airline} ${flight.flightNumber} - $${flight.price}`,
-            description: `${flight.departure.time} → ${flight.arrival.time} | ${flight.duration} | ${flight.stops} stop(s)`,
-            imageUrl: `https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800`,
-            actions: [{
-              type: 'event',
-              name: 'book_flight',
-              payload: { flightId: flight.flightNumber, bookingUrl: flight.bookingUrl },
-            }],
+        const flightListUi = {
+          type: 'flight_list' as const,
+          items: flights.map((f: any) => ({
+            id: f.id,
+            airline: f.airline,
+            flightNumber: f.flightNumber,
+            price: f.price,
+            currency: f.currency || 'USD',
+            stops: f.stops,
+            duration: f.duration,
+            departure: f.departure,
+            arrival: f.arrival,
+            deeplinkUrl: f.deeplinkUrl || f.bookingUrl,
+            bookingUrl: f.bookingUrl || f.deeplinkUrl,
           })),
         };
 
         const response = {
-          text: `Found ${flights.length} flight options from ${from || 'your origin'} to ${to || 'your destination'}:`,
-          ui: UiSpecSchema.parse(uiSpec),
+          reply: `I found ${flights.length} flight option${flights.length === 1 ? '' : 's'} from ${origin} to ${destination}. Use "Book Now" to continue.`,
+          text: `I found ${flights.length} flight option${flights.length === 1 ? '' : 's'} from ${origin} to ${destination}. Use "Book Now" to continue.`,
+          panel: 'flights' as const,
+          data: { flights },
+          ui: flightListUi,
         };
 
         chatResponseSchema.parse(response);
         return res.json(response);
       } catch (error) {
+        const errMsg = error instanceof Error ? error.message : '';
         console.error('[Chat UI] Error searching flights:', error);
+        if (errMsg.includes('provider auth failed')) {
+          return res.json({
+            reply: 'Flight search temporarily unavailable (provider auth failed). Please check that TRAVELPAYOUTS_TOKEN is set in the API environment.',
+            text: 'Flight search temporarily unavailable (provider auth failed).',
+            panel: undefined,
+            data: {},
+            ui: null,
+          });
+        }
         return res.json({
+          reply: 'Sorry, I encountered an error searching for flights. Please try again later.',
           text: 'Sorry, I encountered an error searching for flights. Please try again later.',
+          panel: undefined,
+          data: {},
+          ui: null,
         });
       }
     }
