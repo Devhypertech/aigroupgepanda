@@ -14,6 +14,11 @@ export function getTravelpayoutsMarker() {
   return process.env.NEXT_PUBLIC_TRAVELPAYOUTS_MARKER || '613624';
 }
 
+// Backwards-compatible alias used by aviasales helper
+export function getMarker() {
+  return getTravelpayoutsMarker();
+}
+
 export function assertTravelpayoutsConfigured() {
   const token = getTravelpayoutsToken();
 

@@ -3,7 +3,8 @@
  * Provides typed client-side authentication utilities
  */
 
-import { getSession, signIn, signOut, Session } from 'next-auth/react';
+import { getSession, signIn, signOut } from 'next-auth/react';
+import type { Session } from 'next-auth';
 
 export interface GePandaSession extends Session {
   user: {

@@ -33,6 +33,7 @@ export interface FeedItem {
   imageUrl?: string;
   source: string | null;
   affiliateUrl: string | null;
+  url?: string | null;
   tagsJson: string[] | null;
   score: number; // 0-1, base relevance/ranking score
   affiliateValue?: number; // 0-1, affiliate value weight

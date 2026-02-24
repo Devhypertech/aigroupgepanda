@@ -25,30 +25,32 @@ function parsePurchaseLinks(text: string): { cleanedText: string; purchaseButton
   const purchasePattern = /(\*\*)?Purchase:?\s*\*?\s*<?(https?:\/\/[^\s>]+|www\.[^\s>]+|[^\s>]+\.[a-z]{2,})>?/gi;
 
   // Extract Purchase Link patterns
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = purchaseLinkPattern.exec(text)) !== null) {
-    const url = match[2] || match[3];
+    const m = match as RegExpExecArray;
+    const url = m[2] || m[3];
     if (url) {
       const fullUrl = url.startsWith('http') ? url : `https://${url}`;
       purchaseButtons.push({ label: 'Purchase', url: fullUrl });
       // Remove the line containing this pattern
       const lines = cleanedText.split('\n');
       cleanedText = lines
-        .filter(line => !line.includes(match[0]))
+        .filter(line => !line.includes(m[0]))
         .join('\n');
     }
   }
 
   // Extract Purchase patterns (without "Link")
   while ((match = purchasePattern.exec(text)) !== null) {
-    const url = match[2] || match[3];
+    const m = match as RegExpExecArray;
+    const url = m[2] || m[3];
     if (url && !purchaseButtons.some(btn => btn.url.includes(url))) {
       const fullUrl = url.startsWith('http') ? url : `https://${url}`;
       purchaseButtons.push({ label: 'Purchase', url: fullUrl });
       // Remove the line containing this pattern
       const lines = cleanedText.split('\n');
       cleanedText = lines
-        .filter(line => !line.includes(match[0]))
+        .filter(line => !line.includes(m[0]))
         .join('\n');
     }
   }
