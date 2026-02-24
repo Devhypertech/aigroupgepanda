@@ -6,7 +6,6 @@
 import { searchProducts, extractProductQuery } from '../productSearch.js';
 import { createCheckoutLink } from '../crossmint.js';
 import { generateChatResponse } from '../../chat/respond.js';
-import type { UiSpec } from '@gepanda/shared';
 
 export interface ShoppingContext {
   productQuery?: string;
@@ -22,7 +21,7 @@ export const shoppingAgent = {
     recentMessages: Array<{ text: string; role: 'user' | 'assistant' }> = [],
     userId?: string,
     sessionId?: string
-  ): Promise<{ text: string; ui?: UiSpec | null }> {
+  ): Promise<{ text: string; ui?: any | null }> {
     const lowerMessage = message.toLowerCase().trim();
 
     // Detect purchase intent

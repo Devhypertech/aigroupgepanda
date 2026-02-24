@@ -13,6 +13,10 @@
 import { prisma } from '../db/client.js';
 import type { FeedItem } from '@gepanda/shared';
 
+type RankedBaseItem = FeedItem & {
+  publishedAt?: string | Date;
+};
+
 export interface RankingContext {
   userId: string;
   userSignals?: {
@@ -39,7 +43,7 @@ export interface RankedFeedItem extends FeedItem {
  * Calculate recency score (15% weight)
  * Newer items get higher scores, but less weight than personalization
  */
-function calculateRecencyScore(item: FeedItem): number {
+function calculateRecencyScore(item: RankedBaseItem): number {
   // Use publishedAt if available, otherwise createdAt
   const itemDate = item.publishedAt ? new Date(item.publishedAt) : new Date(item.createdAt);
   const now = Date.now();

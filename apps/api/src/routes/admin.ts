@@ -56,9 +56,9 @@ router.get('/users', requireAdmin(), async (req, res) => {
               interest: {
                 select: {
                   id: true,
-                  name: true,
                   slug: true,
-                  icon: true,
+                  label: true,
+                  group: true,
                 },
               },
             },
@@ -164,9 +164,9 @@ router.get('/users', requireAdmin(), async (req, res) => {
       createdAt: user.createdAt.toISOString(),
       interests: user.interests.map(ui => ({
         id: ui.interest.id,
-        name: ui.interest.name,
+        name: ui.interest.label,
         slug: ui.interest.slug,
-        icon: ui.interest.icon,
+        group: ui.interest.group,
       })),
       interestsCount: user.interests.length,
       savedItems: savedItemsByUser.get(user.id) || [],
@@ -220,9 +220,9 @@ router.get('/users/:userId', requireAdmin(), async (req, res) => {
             interest: {
               select: {
                 id: true,
-                name: true,
                 slug: true,
-                icon: true,
+                label: true,
+                group: true,
               },
             },
           },
@@ -302,9 +302,9 @@ router.get('/users/:userId', requireAdmin(), async (req, res) => {
       updatedAt: user.updatedAt.toISOString(),
       interests: user.interests.map(ui => ({
         id: ui.interest.id,
-        name: ui.interest.name,
+        name: ui.interest.label,
         slug: ui.interest.slug,
-        icon: ui.interest.icon,
+        group: ui.interest.group,
       })),
       interestsCount: user.interests.length,
       savedItems: savedItems.map(savedItem => ({

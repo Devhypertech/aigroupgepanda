@@ -8,7 +8,7 @@
 
 import { isStreamFeedsEnabled } from './feedsClient.js';
 
-export type EngagementAction = 'view' | 'click' | 'save' | 'like';
+export type EngagementAction = 'view' | 'click' | 'save' | 'like' | 'not_interested';
 
 /**
  * Track user engagement with a feed item

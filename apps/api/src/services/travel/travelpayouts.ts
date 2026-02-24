@@ -165,7 +165,7 @@ export async function searchFlights(params: FlightSearchParams): Promise<FlightR
       throw new Error(`Travelpayouts API error: ${response.status}`);
     }
 
-    const json = await response.json();
+    const json: any = await response.json();
     if (!json.success) {
       const errMsg = json.error || 'Unknown error';
       console.error('[Travelpayouts] API success=false:', errMsg);

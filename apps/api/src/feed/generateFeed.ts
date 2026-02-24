@@ -15,7 +15,7 @@
 
 import { z } from 'zod';
 import type { FeedItem } from '@gepanda/shared';
-import { getAllContent } from './contentSources.js';
+import { getAllContent, type BaseFeedContent } from './contentSources.js';
 import { getLongTermMemory } from '../services/memory/memoryStore.js';
 import { getUserSignals } from '../signals/updateSignals.js';
 
@@ -85,12 +85,20 @@ async function getUserSignalsData(userId: string): Promise<{
   }
 }
 
+// Extend shared FeedItem with optional metadata fields used for ranking.
+type ExtendedFeedItem = FeedItem & {
+  metadata?: FeedItem['metadata'];
+  imageUrl?: string;
+  publishedAt?: string | Date;
+  relevanceScore?: number;
+};
+
 /**
  * Calculate relevance score for a feed item
  * Based on user profile, user signals, and seasonality
  */
 function calculateRelevanceScore(
-  item: FeedItem,
+  item: ExtendedFeedItem,
   context: FeedGenerationContext
 ): number {
   let score = 0.5; // Base score
@@ -98,7 +106,7 @@ function calculateRelevanceScore(
   const { userProfile, userSignals, currentMonth } = context;
 
   // 1. Destination matching (0.35 weight)
-  if (item.type === 'destination' && item.metadata.destination) {
+  if (item.type === 'destination' && item.metadata?.destination) {
     const destination = item.metadata.destination.toLowerCase();
     
     // Check if in user signals destinations
@@ -170,7 +178,7 @@ function calculateRelevanceScore(
     // Budget matching for deals
     if (item.type === 'deal' && userProfile.preferences.budget) {
       const budget = userProfile.preferences.budget.toLowerCase();
-      const price = item.metadata.price?.toLowerCase() || '';
+      const price = item.metadata?.price?.toLowerCase() || '';
       
       if ((budget.includes('budget') && parseFloat(price.replace(/[^0-9.]/g, '')) < 500) ||
           (budget.includes('luxury') && parseFloat(price.replace(/[^0-9.]/g, '')) > 1000)) {
@@ -277,15 +285,28 @@ export async function generateFeed(
   };
 
   // 5. Get all content sources
-  const allContent = getAllContent();
+  const allContent: BaseFeedContent[] = getAllContent();
 
   // 6. Score and rank items
-  const scoredItems: Array<FeedItem & { finalScore: number }> = allContent.map((content, index) => {
-    const item: FeedItem = {
-      ...content,
+  const scoredItems: Array<ExtendedFeedItem & { finalScore: number }> = allContent.map((content, index) => {
+    const createdAt = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(); // Random age for freshness testing
+    const item: ExtendedFeedItem = {
       id: `feed_${Date.now()}_${index}`,
-      relevanceScore: 0,
-      createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(), // Random age for freshness testing
+      type: content.type,
+      category: null,
+      title: content.title,
+      description: content.description,
+      contentSnippet: content.description,
+      mediaUrl: null,
+      imageUrl: content.imageUrl,
+      source: 'GePanda',
+      affiliateUrl: null,
+      tagsJson: null,
+      score: 0.5,
+      affiliateValue: 0,
+      createdAt,
+      updatedAt: createdAt,
+      metadata: content.metadata,
     };
 
     // Calculate scores

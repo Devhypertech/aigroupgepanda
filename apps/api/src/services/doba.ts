@@ -123,7 +123,7 @@ async function getAuthToken(requestId: string): Promise<string | null> {
       throw new Error(`Token exchange failed: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     const token = data.token || data.accessToken;
     const expiresIn = data.expiresIn || 3600; // Default 1 hour
 

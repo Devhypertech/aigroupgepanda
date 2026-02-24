@@ -4,8 +4,8 @@
  */
 
 import { searchShopping } from './serpApiShopping.js';
-import { dobaSearch } from '../../doba.js';
-import { searchGoogleShopping } from '../../serpapiShopping.js';
+import { dobaSearch } from '../doba.js';
+import { searchGoogleShopping } from '../serpapiShopping.js';
 import {
   normalizeSerpApiProduct,
   normalizeDobaProduct,

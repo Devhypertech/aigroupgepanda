@@ -5,7 +5,6 @@
 
 import { searchHotels, searchFlights } from '../travel/travelpayouts.js';
 import { generateChatResponse } from '../../chat/respond.js';
-import type { UiSpec } from '@gepanda/shared';
 
 export interface TravelContext {
   destination?: string;
@@ -22,7 +21,7 @@ export const travelAgent = {
     recentMessages: Array<{ text: string; role: 'user' | 'assistant' }> = [],
     userId?: string,
     sessionId?: string
-  ): Promise<{ text: string; ui?: UiSpec | null }> {
+  ): Promise<{ text: string; ui?: any | null }> {
     const lowerMessage = message.toLowerCase().trim();
 
     // Extract travel details from message
@@ -43,11 +42,12 @@ export const travelAgent = {
           destination: destination,
           departureDate: dates.startDate || new Date().toISOString().split('T')[0],
           returnDate: dates.endDate,
+          passengers: 1,
         });
 
         if (flights && flights.length > 0) {
           const flightList = flights.slice(0, 5).map(f => 
-            `- ${f.airline || 'Flight'} from ${f.origin} to ${f.destination}${f.price ? ` - $${f.price}` : ''}`
+            `- ${f.airline || 'Flight'} from ${f.departure.airport} to ${f.arrival.airport}${f.price ? ` - $${f.price}` : ''}`
           ).join('\n');
 
           const aiResponse = await generateChatResponse(
@@ -76,8 +76,9 @@ export const travelAgent = {
         const hotels = await searchHotels({
           destination: destination,
           checkIn: dates.startDate || new Date().toISOString().split('T')[0],
-          checkOut: dates.endDate,
-          budget: budget,
+          checkOut: dates.endDate || new Date().toISOString().split('T')[0],
+          guests: 2,
+          maxPrice: budget,
         });
 
         if (hotels && hotels.length > 0) {

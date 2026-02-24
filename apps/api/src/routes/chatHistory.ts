@@ -114,12 +114,17 @@ router.post('/message', async (req, res) => {
         role: msg.role,
       }));
       
-      aiResponse = await generateChatResponse(
+      const result = await generateChatResponse(
         message,
         formattedMessages,
         true, // uiMode
         undefined, // tripState
       );
+      aiResponse = {
+        reply: result.text,
+        text: result.text,
+        ui: result.ui,
+      };
     } catch (aiError) {
       console.error('[ChatHistory] AI response error:', aiError);
       aiResponse = {

@@ -4,7 +4,6 @@
  */
 
 import { generateChatResponse } from '../../chat/respond.js';
-import type { UiSpec } from '@gepanda/shared';
 
 export interface ESIMContext {
   country?: string;
@@ -47,7 +46,7 @@ export const esimAgent = {
     recentMessages: Array<{ text: string; role: 'user' | 'assistant' }> = [],
     userId?: string,
     sessionId?: string
-  ): Promise<{ text: string; ui?: UiSpec | null }> {
+  ): Promise<{ text: string; ui?: any | null }> {
     // Extract country from message or context
     const country = context?.country || extractCountry(message);
     const duration = context?.duration || extractDuration(message);

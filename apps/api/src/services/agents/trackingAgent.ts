@@ -5,7 +5,6 @@
 
 import { getOrderStatus, getOrderTracking } from '../orderTracking.js';
 import { generateChatResponse } from '../../chat/respond.js';
-import type { UiSpec } from '@gepanda/shared';
 
 export interface TrackingContext {
   orderId?: string;
@@ -18,7 +17,7 @@ export const trackingAgent = {
     recentMessages: Array<{ text: string; role: 'user' | 'assistant' }> = [],
     userId?: string,
     sessionId?: string
-  ): Promise<{ text: string; ui?: UiSpec | null }> {
+  ): Promise<{ text: string; ui?: any | null }> {
     // Extract order ID from message or context
     const orderId = context?.orderId || extractOrderId(message);
 
@@ -47,18 +46,18 @@ export const trackingAgent = {
       const statusText = formatStatus(status.status);
       let responseText = `Your order ${orderId} is currently **${statusText}**.`;
 
-      if (tracking?.tracking) {
+      if (tracking) {
         responseText += `\n\n📦 **Tracking Information:**\n`;
-        responseText += `- Carrier: ${tracking.tracking.carrier}\n`;
-        responseText += `- Tracking Number: ${tracking.tracking.number}\n`;
-        if (tracking.tracking.url) {
-          responseText += `- [Track Package](${tracking.tracking.url})`;
+        responseText += `- Carrier: ${tracking.carrier}\n`;
+        responseText += `- Tracking Number: ${tracking.number}\n`;
+        if (tracking.url) {
+          responseText += `- [Track Package](${tracking.url})`;
         }
       }
 
       // Generate AI response with context
       const aiResponse = await generateChatResponse(
-        `User is asking about order ${orderId}. Status: ${status.status}. ${tracking?.tracking ? `Tracking: ${tracking.tracking.carrier} ${tracking.tracking.number}` : ''}. Provide a helpful update.`,
+        `User is asking about order ${orderId}. Status: ${status.status}. ${tracking ? `Tracking: ${tracking.carrier} ${tracking.number}` : ''}. Provide a helpful update.`,
         recentMessages,
         false
       );

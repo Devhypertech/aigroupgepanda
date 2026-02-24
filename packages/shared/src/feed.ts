@@ -30,11 +30,20 @@ export interface FeedItem {
   description: string;
   contentSnippet?: string | null;
   mediaUrl: string | null;
+  imageUrl?: string;
   source: string | null;
   affiliateUrl: string | null;
   tagsJson: string[] | null;
   score: number; // 0-1, base relevance/ranking score
   affiliateValue?: number; // 0-1, affiliate value weight
+  metadata?: {
+    destination?: string;
+    bestTimeToVisit?: string;
+    price?: string;
+    [k: string]: any;
+  };
+  publishedAt?: string | Date;
+  relevanceScore?: number;
   createdAt: string;
   updatedAt: string;
   // Ranking scores (computed, not stored)

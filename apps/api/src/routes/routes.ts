@@ -3,14 +3,15 @@
  * GET /api/routes - Lists all registered Express routes (dev only)
  */
 
-import { Router, type Express } from 'express';
+import { Router } from 'express';
 
 const router = Router();
 
 /**
  * Extract all routes from Express app
+ * Loosely typed to avoid Express generic mismatches.
  */
-function getAllRoutes(app: Express): Array<{ method: string; path: string }> {
+function getAllRoutes(app: any): Array<{ method: string; path: string }> {
   const routes: Array<{ method: string; path: string }> = [];
 
   // Recursively extract routes from Express router stack

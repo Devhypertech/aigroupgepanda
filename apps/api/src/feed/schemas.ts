@@ -42,10 +42,18 @@ export const FeedItemSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().min(1),
   mediaUrl: z.string().url().nullable(),
+  imageUrl: z.string().url().optional().nullable(),
   source: z.string().nullable(),
   affiliateUrl: z.string().url().nullable(),
   tagsJson: z.array(z.string()).nullable(),
   score: z.number().min(0).max(1),
+  metadata: z.object({
+    destination: z.string().optional(),
+    bestTimeToVisit: z.string().optional(),
+    price: z.string().optional(),
+  }).catchall(z.any()).optional().nullable(),
+  publishedAt: z.date().optional().nullable(),
+  relevanceScore: z.number().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

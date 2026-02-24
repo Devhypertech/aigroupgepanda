@@ -90,7 +90,7 @@ export async function searchGoogleShopping(
       throw new Error(`SerpAPI request failed: ${response.status} ${errorText}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
 
     // Handle SerpAPI errors
     if (data.error) {

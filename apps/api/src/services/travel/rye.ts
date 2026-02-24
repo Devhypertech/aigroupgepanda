@@ -56,7 +56,7 @@ export async function createCheckoutSession(params: RyeBookingParams): Promise<R
       throw new Error(`Rye API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     return {
       sessionId: data.session_id,
       checkoutUrl: data.checkout_url,
@@ -90,7 +90,7 @@ export async function getBookingStatus(sessionId: string): Promise<{
       throw new Error(`Rye API error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: any = await response.json();
     return {
       status: data.status,
       bookingId: data.booking_id,

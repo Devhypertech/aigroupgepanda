@@ -42,15 +42,15 @@ export async function getCurrentUser(
           where: { id: decoded.userId },
         });
         
-        if (user) {
-          return {
-            id: user.id,
-            type: 'user',
-            name: user.name || 'User',
-            email: user.email,
-            imageUrl: user.imageUrl || undefined,
-          };
-        }
+          if (user) {
+            return {
+              id: user.id,
+              type: 'user',
+              name: user.name || 'User',
+              email: user.email,
+              imageUrl: user.image || undefined,
+            };
+          }
       }
     } catch (error) {
       // JWT invalid or expired, continue to other auth methods
@@ -85,7 +85,7 @@ export async function getCurrentUser(
               type: 'user',
               name: user.name || 'User',
               email: user.email,
-              imageUrl: user.imageUrl || undefined,
+              imageUrl: user.image || undefined,
             };
           }
         } catch (error) {

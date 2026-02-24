@@ -93,7 +93,7 @@ async function getWeatherFromOpenWeatherMap(params: WeatherParams): Promise<Weat
     throw new Error(`OpenWeatherMap geo API error: ${geoResponse.status}`);
   }
 
-  const geoData = await geoResponse.json();
+  const geoData: any = await geoResponse.json();
   if (!geoData || geoData.length === 0) {
     throw new Error(`Location not found: ${params.destination}`);
   }
@@ -109,7 +109,7 @@ async function getWeatherFromOpenWeatherMap(params: WeatherParams): Promise<Weat
     throw new Error(`OpenWeatherMap weather API error: ${weatherResponse.status}`);
   }
 
-  const weatherData = await weatherResponse.json();
+  const weatherData: any = await weatherResponse.json();
 
   // Get forecast if requested
   let forecast;
@@ -119,7 +119,7 @@ async function getWeatherFromOpenWeatherMap(params: WeatherParams): Promise<Weat
     );
 
     if (forecastResponse.ok) {
-      const forecastData = await forecastResponse.json();
+      const forecastData: any = await forecastResponse.json();
       forecast = transformForecast(forecastData.list);
     }
   }
@@ -154,7 +154,7 @@ async function getWeatherFromWeatherAPI(params: WeatherParams): Promise<WeatherD
     throw new Error(`WeatherAPI error: ${response.status}`);
   }
 
-  const data = await response.json();
+  const data: any = await response.json();
 
   return {
     location: {

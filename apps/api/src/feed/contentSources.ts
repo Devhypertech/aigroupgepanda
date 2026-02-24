@@ -5,10 +5,16 @@
 
 import type { FeedItem } from '@gepanda/shared';
 
+// Base content shape used for mock feed generation
+export type BaseFeedContent = Pick<FeedItem, 'type' | 'title' | 'description'> & {
+  imageUrl: string;
+  metadata?: FeedItem['metadata'];
+};
+
 /**
  * Mock destination content
  */
-export const DESTINATION_CONTENT: Omit<FeedItem, 'id' | 'relevanceScore' | 'createdAt'>[] = [
+export const DESTINATION_CONTENT: BaseFeedContent[] = [
   {
     type: 'destination',
     title: 'Discover Kyoto in Spring',
@@ -69,7 +75,7 @@ export const DESTINATION_CONTENT: Omit<FeedItem, 'id' | 'relevanceScore' | 'crea
 /**
  * Mock deal content
  */
-export const DEAL_CONTENT: Omit<FeedItem, 'id' | 'relevanceScore' | 'createdAt'>[] = [
+export const DEAL_CONTENT: BaseFeedContent[] = [
   {
     type: 'deal',
     title: '30% Off Flights to Bali',
@@ -114,7 +120,7 @@ export const DEAL_CONTENT: Omit<FeedItem, 'id' | 'relevanceScore' | 'createdAt'>
 /**
  * Mock weather content
  */
-export const WEATHER_CONTENT: Omit<FeedItem, 'id' | 'relevanceScore' | 'createdAt'>[] = [
+export const WEATHER_CONTENT: BaseFeedContent[] = [
   {
     type: 'weather',
     title: 'Weather Alert: Tokyo',
@@ -142,7 +148,7 @@ export const WEATHER_CONTENT: Omit<FeedItem, 'id' | 'relevanceScore' | 'createdA
 /**
  * Mock product content
  */
-export const PRODUCT_CONTENT: Omit<FeedItem, 'id' | 'relevanceScore' | 'createdAt'>[] = [
+export const PRODUCT_CONTENT: BaseFeedContent[] = [
   {
     type: 'product',
     title: 'Universal Travel Adapter',
@@ -190,7 +196,7 @@ export const PRODUCT_CONTENT: Omit<FeedItem, 'id' | 'relevanceScore' | 'createdA
 /**
  * Mock insight content
  */
-export const INSIGHT_CONTENT: Omit<FeedItem, 'id' | 'relevanceScore' | 'createdAt'>[] = [
+export const INSIGHT_CONTENT: BaseFeedContent[] = [
   {
     type: 'insight',
     title: 'Crypto-Friendly Destinations',
@@ -229,7 +235,7 @@ export const INSIGHT_CONTENT: Omit<FeedItem, 'id' | 'relevanceScore' | 'createdA
 /**
  * Get all content sources
  */
-export function getAllContent(): Omit<FeedItem, 'id' | 'relevanceScore' | 'createdAt'>[] {
+export function getAllContent(): BaseFeedContent[] {
   return [
     ...DESTINATION_CONTENT,
     ...DEAL_CONTENT,

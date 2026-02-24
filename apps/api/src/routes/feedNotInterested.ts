@@ -6,6 +6,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../db/client.js';
+import { getCurrentUser } from '../middleware/auth.js';
 
 const router = Router();
 

@@ -308,7 +308,7 @@ router.get('/me', async (req, res) => {
         id: true,
         email: true,
         name: true,
-        imageUrl: true,
+        image: true,
       },
     });
 
@@ -324,7 +324,7 @@ router.get('/me', async (req, res) => {
         id: user.id,
         email: user.email,
         name: user.name,
-        imageUrl: user.imageUrl,
+        imageUrl: user.image || undefined,
       },
     });
   } catch (error) {
@@ -376,8 +376,8 @@ router.post('/upsert', async (req, res) => {
           create: {
             email,
             name: name || null,
-            imageUrl: imageUrl || null,
-            password: null, // OAuth users don't have passwords
+            image: imageUrl || null,
+            passwordHash: null, // OAuth users don't have passwords
           },
         });
       } catch (dbError) {

@@ -159,3 +159,12 @@ export function getOrderStatus(orderId: string, userId?: string): {
   };
 }
 
+/**
+ * Get full tracking details for an order.
+ * Alias used by trackingAgent for clarity.
+ */
+export function getOrderTracking(orderId: string, userId?: string): Order['tracking'] | null {
+  const order = getOrder(orderId, userId);
+  return order?.tracking || null;
+}
+
