@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Guest User Authentication Helper
  * Handles guest user ID management using localStorage

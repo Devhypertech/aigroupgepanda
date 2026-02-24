@@ -557,6 +557,16 @@ router.post('/respond', async (req, res) => {
       hasStrongShoppingKeyword || 
       (hasProductKeyword && hasShoppingContext)
     );
+
+    // Only run product search when the message looks like a concrete product query.
+    // Generic messages like "I want to shop with AI, help me find something" should
+    // get a normal AI reply (e.g. "What are you looking for?") instead of "couldn't find products".
+    const hasConcreteProductQuery =
+      hasProductKeyword ||
+      lowerUserMessage.length <= 45 ||
+      /\d+\s*(dollar|usd|eur|gbp|budget|under|below)/i.test(userMessage) ||
+      /\$\s*\d+|\d+\s*\$\s*|under\s*\$\d+/i.test(userMessage);
+    const isGenericShoppingMessage = hasShoppingIntent && !hasConcreteProductQuery;
     
     // Log intent detection for debugging
     console.log(`${logPrefix} Intent detection:`, {
@@ -565,15 +575,18 @@ router.post('/respond', async (req, res) => {
       hasProductKeyword,
       hasShoppingContext,
       hasShoppingIntent,
+      hasConcreteProductQuery,
+      isGenericShoppingMessage,
       messagePreview: userMessage.substring(0, 50),
     });
     
     // Generate AI response using reusable service
     if (!action && userMessage) {
       try {
-        // If shopping intent detected, search for products first
-        if (hasShoppingIntent) {
-          console.log(`${logPrefix} 🛒 Shopping intent detected, searching products...`);
+        // If shopping intent with a concrete product query, search for products.
+        // Generic "help me shop" messages fall through to normal AI.
+        if (hasShoppingIntent && !isGenericShoppingMessage) {
+          console.log(`${logPrefix} 🛒 Shopping intent with concrete query, searching products...`);
           
           try {
             const products = await shopSearchProducts({

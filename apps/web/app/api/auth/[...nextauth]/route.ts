@@ -5,7 +5,11 @@ import bcryptjs from 'bcryptjs';
 import { prisma } from '../../../../lib/prisma';
 
 // Get API URL from environment
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// Prefer server-only API_URL when available, fall back to public URL for simplicity.
+const API_URL =
+  process.env.API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:3001';
 
 /**
  * NextAuth Configuration
