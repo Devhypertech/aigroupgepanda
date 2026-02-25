@@ -6,17 +6,25 @@
 if (typeof window !== 'undefined') {
   throw new Error('travelpayouts.ts can only be imported on the server');
 }
+
+/**
+ * Travelpayouts "marker" (affiliate marker / sub_id) used for Aviasales widgets/links.
+ * Keeping it in one place prevents broken imports during build.
+ */
+export function getMarker(): string {
+  return (
+    process.env.NEXT_PUBLIC_TRAVELPAYOUTS_MARKER ||
+    process.env.TRAVELPAYOUTS_MARKER ||
+    ''
+  );
+}
+
 export function getTravelpayoutsToken() {
   return process.env.TRAVELPAYOUTS_TOKEN || '';
 }
 
 export function getTravelpayoutsMarker() {
-  return process.env.NEXT_PUBLIC_TRAVELPAYOUTS_MARKER || '613624';
-}
-
-// Backwards-compatible alias used by aviasales helper
-export function getMarker() {
-  return getTravelpayoutsMarker();
+  return getMarker() || '613624';
 }
 
 export function assertTravelpayoutsConfigured() {

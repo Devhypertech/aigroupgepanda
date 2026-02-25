@@ -12,7 +12,9 @@ const API_URL =
   'http://localhost:3001';
 
 /**
- * NextAuth Configuration
+ * IMPORTANT:
+ * Do NOT export authOptions from route.ts in App Router.
+ * Next.js route files must only export GET/POST handlers.
  */
 export const authOptions: NextAuthOptions = {
   providers: [
