@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: gepanda
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-in-production}
+      POSTGRES_PASSWORD: Postgres123!
       POSTGRES_DB: gepanda
     ports:
       # Use 5433 on host to avoid conflict with existing Postgres on 5432
