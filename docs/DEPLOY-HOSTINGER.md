@@ -6,7 +6,7 @@ This guide walks you through deploying the **API** (Node.js) to Hostinger using 
 
 **Quick reference**
 
-- **Our image (Hostinger pulls only):** `docker-compose.hostinger-with-db-pull.yml` + workflow `build-and-push-api.yml`
+- **Our image (Hostinger pulls only):** `docker-compose.hostinger-with-db-pull.yml` + workflow `build-and-push-api.yml` — API is exposed on **host port 3002** (to avoid conflict with port 3001).
 - Compose (API only): `docker-compose.hostinger.yml`
 - Compose (API + Postgres, build on Hostinger if supported): `docker-compose.hostinger-with-db.yml`
 - Env template: `apps/api/.env.hostinger.example`
@@ -146,10 +146,10 @@ After changing env vars, **redeploy or restart** the API container so it picks t
 
 ## Step 6: Port and domain (optional)
 
-- **Port:** The compose file maps host port `3001` to container port `3001`.  
-  - Access the API at: `http://YOUR_VPS_IP:3001`  
-  - If Hostinger or your firewall only allows 80/443, configure a reverse proxy (e.g. Nginx) to forward to `3001`, or change the host port in the compose (e.g. `"80:3001"`).
-- **Domain:** Point a subdomain (e.g. `api.yourdomain.com`) to the VPS IP and, if needed, put Nginx (or Hostinger’s proxy) in front with SSL.
+- **Port:** When using **docker-compose.hostinger-with-db-pull.yml**, the API is mapped to **host port 3002** (container still uses 3001 inside).  
+  - Access the API at: `http://YOUR_VPS_IP:3002`  
+  - If you use a reverse proxy (e.g. Nginx), forward to **port 3002** (e.g. `proxy_pass http://127.0.0.1:3002;`). For 80/443, point the proxy at 3002.
+- **Domain:** Point a subdomain (e.g. `api.yourdomain.com`) to the VPS IP and, if needed, put Nginx (or Hostinger’s proxy) in front with SSL, proxying to port 3002.
 
 ---
 
@@ -181,9 +181,9 @@ The API uses Prisma. Migrations must be applied against your production DB.
 ## Step 8: Check that the API is running
 
 1. **Health endpoint:**  
-   Open in a browser or with curl:
+   Open in a browser or with curl (use port **3002** when using the pull compose file):
    ```text
-   http://YOUR_VPS_IP:3001/api/healthz
+   http://YOUR_VPS_IP:3002/api/healthz
    ```
    You should get JSON with `server: "ok"` and, once DB and env are correct, `db: "ok"` and Stream keys reported.
 
@@ -191,7 +191,7 @@ The API uses Prisma. Migrations must be applied against your production DB.
    In Docker Manager, open the **api** container logs. You should see startup messages and no fatal errors.
 
 3. **Frontend:**  
-   In your web app, set `NEXT_PUBLIC_API_URL` (or equivalent) to `http://YOUR_VPS_IP:3001` (or your API domain). If you use a different domain, ensure CORS is correct (`WEB_APP_URL` must match the frontend origin).
+   In your web app, set `NEXT_PUBLIC_API_URL` (or equivalent) to `http://YOUR_VPS_IP:3002` (or your API domain, e.g. `https://api.yourdomain.com`). If you use a different domain, ensure CORS is correct (`WEB_APP_URL` must match the frontend origin).
 
 ---
 
@@ -228,9 +228,9 @@ If you see **"No such image: ...-api:latest"**, Hostinger is only pulling images
    - In Hostinger Docker Manager, use **Compose from URL** with the **raw** URL to this file, e.g.:  
      `https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/docker-compose.hostinger-with-db-pull.yml`
 
-4. **Redeploy** on Hostinger. It will pull `ghcr.io/REPO_OWNER/gepanda-api:latest` and start the API.
+4. **Redeploy** on Hostinger. It will pull `ghcr.io/REPO_OWNER/gepanda-api:latest` and start the API. The API will be reachable at **port 3002** (e.g. `http://YOUR_VPS_IP:3002`). Set your frontend’s `NEXT_PUBLIC_API_URL` to that URL (or your API domain if you use a reverse proxy to 3002).
 
-After that, when you change the API code: run the workflow again (or push to `main`), then redeploy on Hostinger so it pulls the new image.
+After that, when you change the API code: run the workflow again (or push to `staging`), then redeploy on Hostinger so it pulls the new image.
 
 ---
 
@@ -243,8 +243,9 @@ After that, when you change the API code: run the workflow again (or push to `ma
 | `port 5432: address already in use` | Something on the VPS already uses 5432. Use `docker-compose.hostinger-with-db.yml` (it maps host **5433**→5432). Or stop the other service using 5432. |
 | Build fails | Ensure Docker Manager has access to the repo and builds from repo root where `Dockerfile` and `package.json` are. Check build logs for `npm install` / `npm run build` errors. |
 | Container exits immediately | Check container logs. Often missing `DATABASE_URL`, wrong `PORT`, or crash on startup (e.g. Prisma, env). |
-| 502 / connection refused | Confirm container is running and port mapping is `3001:3001` (or your chosen host port). Check firewall and reverse proxy. |
-| Health check fails | Call `http://localhost:3001/api/healthz` from inside the container (or from the host to the mapped port). Fix any missing env (e.g. DB, Stream). |
+| `address already in use` on port 3001 | The pull compose file uses **3002:3001** to avoid this. If you use a different compose, change the host port (e.g. `3002:3001`). |
+| 502 / connection refused | Confirm container is running. For pull compose, host port is **3002**. Check firewall and reverse proxy (proxy must forward to 3002). |
+| Health check fails | Call `http://YOUR_VPS_IP:3002/api/healthz` (or from inside the container `http://localhost:3001/api/healthz`). Fix any missing env (e.g. DB, Stream). |
 | CORS errors from browser | Set `WEB_APP_URL` exactly to the frontend origin (e.g. `https://yourdomain.com` with no trailing slash). |
 | DB connection errors | Verify `DATABASE_URL` (user, password, host, port, database name). If DB is on the same compose, use service name as host (e.g. `postgres`). |
 
