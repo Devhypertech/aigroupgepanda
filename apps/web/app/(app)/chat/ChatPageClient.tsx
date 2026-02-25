@@ -29,8 +29,14 @@ interface ChatPageProps {
   initialSessionId?: string;
 }
 
-export default function ChatPage({ initialFollowUpMessage, initialSessionId }: ChatPageProps = {}) {
+export default function ChatPage({ initialFollowUpMessage: initialFollowUpMessageProp, initialSessionId: initialSessionIdProp }: ChatPageProps = {}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromUrlFollowUp = searchParams.get('followUp') || searchParams.get('message') || undefined;
+  const fromUrlSessionId = searchParams.get('sessionId') || undefined;
+  const initialFollowUpMessage = initialFollowUpMessageProp ?? fromUrlFollowUp;
+  const initialSessionId = initialSessionIdProp ?? fromUrlSessionId;
+
   const { stableUserId, username, isReady } = useStableUserId();
   const config = getPublicConfig();
   const STREAM_API_KEY = config.streamApiKey;
