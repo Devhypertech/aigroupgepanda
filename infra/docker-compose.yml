@@ -1,3 +1,6 @@
+# Hostinger Docker – API + Postgres on same VPS
+# Use if you do NOT use Hostinger managed database. Set env in Hostinger UI.
+
 version: '3.8'
 
 services:
@@ -7,10 +10,11 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: gepanda
-      POSTGRES_PASSWORD: gepanda
-      POSTGRES_DB: gepanda_dev
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-in-production}
+      POSTGRES_DB: gepanda
     ports:
-      - "5432:5432"
+      # Use 5433 on host to avoid conflict with existing Postgres on 5432
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,6 +23,24 @@ services:
       timeout: 5s
       retries: 5
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gepanda-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      # DATABASE_URL for API (connects to postgres service inside Docker network)
+      DATABASE_URL: postgresql://gepanda:${POSTGRES_PASSWORD:-change-me-in-production}@postgres:5432/gepanda?schema=public
+      # Set in Hostinger UI: STREAM_API_KEY, STREAM_API_SECRET, JWT_SECRET, WEB_APP_URL
+      # Optionally override: POSTGRES_PASSWORD
+
 volumes:
   postgres_data:
-

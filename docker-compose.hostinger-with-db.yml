@@ -10,10 +10,11 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: gepanda
-      POSTGRES_PASSWORD: Postgres123!
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-in-production}
       POSTGRES_DB: gepanda
     ports:
-      - "5432:5432"
+      # Use 5433 on host to avoid conflict with existing Postgres on 5432
+      - "5733:5732"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -34,10 +35,10 @@ services:
     ports:
       - "3001:3001"
     environment:
-      NODE_ENV: staging
+      NODE_ENV: production
       PORT: "3001"
-      # If using this compose, DATABASE_URL can point to postgres service:
-      DATABASE_URL: postgresql://geopanda:Postgres123!@postgres:5432/geopanda?schema=public
+      # DATABASE_URL for API (connects to postgres service inside Docker network)
+      DATABASE_URL: postgresql://gepanda:${POSTGRES_PASSWORD:-change-me-in-production}@postgres:5432/gepanda?schema=public
       # Set in Hostinger UI: STREAM_API_KEY, STREAM_API_SECRET, JWT_SECRET, WEB_APP_URL
       # Optionally override: POSTGRES_PASSWORD
 

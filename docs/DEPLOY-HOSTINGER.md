@@ -5,10 +5,10 @@ This guide walks you through deploying the **API** (Node.js) to Hostinger using 
 **Quick reference**
 
 - Compose (API only): `docker-compose.hostinger.yml`
-- Compose (API + Postgres): `docker-compose.hostinger-with-db.yml`
+- Compose (API + Postgres): `docker-compose.hostinger-with-db.yml` **(use this file at repo root, not `infra/docker-compose.yml`)**
 - Env template: `apps/api/.env.hostinger.example`
-- Raw compose URL (replace `USER`, `REPO`, `BRANCH`):  
-  `https://raw.githubusercontent.com/USER/REPO/BRANCH/docker-compose.hostinger.yml`
+- Raw compose URL for API + DB (replace `USER`, `REPO`, `BRANCH`):  
+  `https://raw.githubusercontent.com/USER/REPO/BRANCH/docker-compose.hostinger-with-db.yml`
 
 ---
 
@@ -210,6 +210,8 @@ The Docker setup in this guide runs **only the API**. For the Next.js web app:
 
 | Issue | What to check |
 |-------|----------------|
+| Hostinger uses `infra/docker-compose.yml` (Postgres only, no API) | Use the **root** compose URL: `.../docker-compose.hostinger-with-db.yml`, not a URL that resolves to `infra/docker-compose.yml`. |
+| `port 5432: address already in use` | Something on the VPS already uses 5432. Use `docker-compose.hostinger-with-db.yml` (it maps host **5433**→5432). Or stop the other service using 5432. |
 | Build fails | Ensure Docker Manager has access to the repo and builds from repo root where `Dockerfile` and `package.json` are. Check build logs for `npm install` / `npm run build` errors. |
 | Container exits immediately | Check container logs. Often missing `DATABASE_URL`, wrong `PORT`, or crash on startup (e.g. Prisma, env). |
 | 502 / connection refused | Confirm container is running and port mapping is `3001:3001` (or your chosen host port). Check firewall and reverse proxy. |
