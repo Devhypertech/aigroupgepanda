@@ -34,8 +34,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # Host port 3002 to avoid conflict if 3001 is already in use on the VPS
     ports:
-      - "3001:3001"
+      - "3002:3001"
     environment:
       NODE_ENV: production
       PORT: "3001"
