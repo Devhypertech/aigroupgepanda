@@ -28,7 +28,7 @@ services:
 
   api:
     # Replace REPO_OWNER with your GitHub username (e.g. mycompany or johndoe)
-    image: ghcr.io/devsajjad/gepanda-api:latest
+    image: ghcr.io/Devhypertech/gepanda-api:latest
     container_name: gepanda-api
     restart: unless-stopped
     depends_on:
