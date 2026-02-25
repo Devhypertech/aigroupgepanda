@@ -1,7 +1,7 @@
 # Our API image: we build it in GitHub Actions; Hostinger only pulls and runs it.
 # API + Postgres on same VPS; no build on Hostinger.
 #
-# 1. Replace REPO_OWNER below with your GitHub username (or org) – must match the image we push.
+# 1. Replace REPO_OWNER below with your GitHub username (or org) in lowercase – GHCR requires lowercase.
 # 2. Run workflow "Build and push API image" to build and publish our image to GHCR.
 # 3. Use this file's raw URL in Hostinger "Compose from URL".
 
@@ -27,8 +27,8 @@ services:
       retries: 5
 
   api:
-    # Replace REPO_OWNER with your GitHub username (e.g. mycompany or johndoe)
-    image: ghcr.io/Devhypertech/gepanda-api:latest
+    # Use your GitHub username/org in lowercase (e.g. devhypertech, mycompany)
+    image: ghcr.io/devhypertech/gepanda-api:latest
     container_name: gepanda-api
     restart: unless-stopped
     depends_on:
