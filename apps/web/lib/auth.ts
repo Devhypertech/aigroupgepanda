@@ -1,11 +1,8 @@
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import bcryptjs from 'bcryptjs';
-import { prisma } from './prisma';
 
-// Get API URL from environment
-// Prefer server-only API_URL when available, fall back to public URL for simplicity.
+// Get API URL from environment (used for credentials login and OAuth upsert)
 const API_URL =
   process.env.API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
@@ -34,40 +31,37 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Use Prisma directly to find user
-          const user = await prisma.user.findUnique({
-            where: { email: credentials.email },
+          // Use API login so the web app does not need Prisma or DATABASE_URL (fixes Vercel build)
+          const response = await fetch(`${API_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
           });
 
-          if (!user) {
-            throw new Error('Invalid email or password');
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            const message =
+              data?.message || data?.error || 'Invalid email or password';
+            throw new Error(message);
           }
 
-          // Check if user has a passwordHash (OAuth users won't have one)
-          if (!user.passwordHash) {
-            throw new Error('This account was created with Google. Please sign in with Google instead.');
+          const user = data?.user;
+          if (!user?.id || !user?.email) {
+            throw new Error('Invalid response from login');
           }
 
-          // Verify password using bcryptjs
-          const isPasswordValid = await bcryptjs.compare(
-            credentials.password,
-            user.passwordHash
-          );
-
-          if (!isPasswordValid) {
-            throw new Error('Invalid email or password');
-          }
-
-          // Return user object for NextAuth session
           return {
             id: user.id,
             email: user.email,
-            name: user.name,
-            image: user.image || undefined,
+            name: user.name ?? user.email,
+            image: user.image ?? undefined,
           };
         } catch (error) {
           console.error('[NextAuth] Credentials authorize error:', error);
-          // Re-throw to show error message to user
           throw error;
         }
       },

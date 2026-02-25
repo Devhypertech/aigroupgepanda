@@ -12,30 +12,22 @@ This guide covers deploying the Next.js web app (`apps/web`) to Vercel.
 
 ### 1. Root Directory
 
-Set **Root Directory** to:
-```
-apps/web
-```
+**Use the repository root** (leave **Root Directory** empty, or set to `.`).
+
+Do **not** set Root Directory to `apps/web`. The build script `build:vercel:web` lives in the root `package.json` and builds the shared package then the web app; it must run from the repo root.
 
 ### 2. Build Command
 
-Use the monorepo-aware build command:
+Use the monorepo-aware build (from root):
 ```bash
 npm run build:vercel:web
 ```
 
-Or if using Vercel's automatic detection:
-```bash
-npm run build
-```
-
-**Note:** Vercel will automatically detect Next.js and use the correct build command if `package.json` has a `build` script.
+This is set in `vercel.json` at the repo root. It runs `npm run build:shared` then builds the Next.js app.
 
 ### 3. Output Directory
 
-**Default:** `.next` (auto-detected by Vercel)
-
-Vercel automatically detects Next.js output directory, so no manual configuration needed.
+Set to **`apps/web/.next`** (relative to repo root). This is set in `vercel.json`.
 
 ### 4. Install Command
 
@@ -90,11 +82,11 @@ NEXT_PUBLIC_TRAVELPAYOUTS_MARKER=613624
    - Vercel will auto-detect it's a Next.js app
 
 2. **Configure Project:**
-   - **Root Directory:** `apps/web`
-   - **Framework Preset:** Next.js (auto-detected)
-   - **Build Command:** `npm run build:vercel:web` (or leave auto)
-   - **Output Directory:** `.next` (auto-detected)
-   - **Install Command:** `npm install` (auto)
+   - **Root Directory:** leave **empty** (use repository root)
+   - **Framework Preset:** Next.js (or None; build is custom)
+   - **Build Command:** `npm run build:vercel:web` (from root; also in `vercel.json`)
+   - **Output Directory:** `apps/web/.next`
+   - **Install Command:** `npm install` (from root)
 
 3. **Set Environment Variables:**
    - Add all required variables listed above
@@ -119,7 +111,7 @@ cd /path/to/gepanda-ai-groupchat
 vercel
 
 # Follow prompts:
-# - Set root directory: apps/web
+# - Root directory: leave empty (repo root)
 # - Link to existing project or create new
 # - Set environment variables
 ```
