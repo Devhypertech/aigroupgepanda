@@ -2,13 +2,16 @@
 
 This guide walks you through deploying the **API** (Node.js) to Hostinger using Docker. The **web app** (Next.js) is usually deployed separately (e.g. Vercel or another Hostinger container).
 
+**Our image flow (recommended):** We build our own API image in GitHub Actions and push it to GHCR. Hostinger only pulls that image and runs it (no build on the VPS). Use `docker-compose.hostinger-with-db-pull.yml` and the workflow "Build and push API image".
+
 **Quick reference**
 
+- **Our image (Hostinger pulls only):** `docker-compose.hostinger-with-db-pull.yml` + workflow `build-and-push-api.yml`
 - Compose (API only): `docker-compose.hostinger.yml`
-- Compose (API + Postgres): `docker-compose.hostinger-with-db.yml` **(use this file at repo root, not `infra/docker-compose.yml`)**
+- Compose (API + Postgres, build on Hostinger if supported): `docker-compose.hostinger-with-db.yml`
 - Env template: `apps/api/.env.hostinger.example`
-- Raw compose URL for API + DB (replace `USER`, `REPO`, `BRANCH`):  
-  `https://raw.githubusercontent.com/USER/REPO/BRANCH/docker-compose.hostinger-with-db.yml`
+- Raw compose URL for **our image** (replace `USER`, `REPO`, `BRANCH`):  
+  `https://raw.githubusercontent.com/USER/REPO/BRANCH/docker-compose.hostinger-with-db-pull.yml`
 
 ---
 
@@ -206,11 +209,37 @@ The Docker setup in this guide runs **only the API**. For the Next.js web app:
 
 ---
 
+## If Hostinger doesn't build the API image
+
+If you see **"No such image: ...-api:latest"**, Hostinger is only pulling images and not building from your Dockerfile. Use a **pre-built image** instead:
+
+1. **Build and push the API image from GitHub:**
+   - In your repo: **Settings → Actions → General** → set **Workflow permissions** to "Read and write permissions" → Save.
+   - Go to **Actions** → **Build and push API image** → **Run workflow** (or push to `main`; the workflow runs automatically).
+   - Wait until the workflow finishes. It pushes the image to GitHub Container Registry (GHCR): `ghcr.io/YOUR_GITHUB_USER/gepanda-api:latest`.
+
+2. **Make the package public (so Hostinger can pull without login):**
+   - On GitHub: open your profile (or org) → **Packages** → **gepanda-api** → **Package settings** → **Change visibility** → **Public**.
+
+3. **Use the pull-only compose file:**
+   - Open `docker-compose.hostinger-with-db-pull.yml` in the repo.
+   - Replace **REPO_OWNER** with your GitHub username (e.g. `johndoe` or `mycompany`).
+   - Commit and push.
+   - In Hostinger Docker Manager, use **Compose from URL** with the **raw** URL to this file, e.g.:  
+     `https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/docker-compose.hostinger-with-db-pull.yml`
+
+4. **Redeploy** on Hostinger. It will pull `ghcr.io/REPO_OWNER/gepanda-api:latest` and start the API.
+
+After that, when you change the API code: run the workflow again (or push to `main`), then redeploy on Hostinger so it pulls the new image.
+
+---
+
 ## Troubleshooting
 
 | Issue | What to check |
 |-------|----------------|
 | Hostinger uses `infra/docker-compose.yml` (Postgres only, no API) | Use the **root** compose URL: `.../docker-compose.hostinger-with-db.yml`, not a URL that resolves to `infra/docker-compose.yml`. |
+| `No such image: ...-api:latest` | Hostinger is not building the API from your Dockerfile. Use the **pull-only** flow: see [If Hostinger doesn't build the API image](#if-hostinger-doesnt-build-the-api-image) below. |
 | `port 5432: address already in use` | Something on the VPS already uses 5432. Use `docker-compose.hostinger-with-db.yml` (it maps host **5433**→5432). Or stop the other service using 5432. |
 | Build fails | Ensure Docker Manager has access to the repo and builds from repo root where `Dockerfile` and `package.json` are. Check build logs for `npm install` / `npm run build` errors. |
 | Container exits immediately | Check container logs. Often missing `DATABASE_URL`, wrong `PORT`, or crash on startup (e.g. Prisma, env). |
