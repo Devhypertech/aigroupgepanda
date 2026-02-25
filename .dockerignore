@@ -6,7 +6,9 @@ apps/*/dist
 packages/*/dist
 *.log
 .env
-.env.local
+.env.*
+!.env.example
+!.env.hostinger.example
 .git
 .gitignore
 .DS_Store

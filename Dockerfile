@@ -45,8 +45,15 @@ RUN echo "=== Shared package imports ===" && \
     echo "=== API imports ===" && \
     grep -n "db/client\|socketEvents" apps/api/dist/index.js | head -5
 
-# Expose port
-EXPOSE ${PORT:-3001}
+# Production defaults (override at runtime via env)
+ENV NODE_ENV=production
+
+# Expose API port (Hostinger maps external port to 3001)
+EXPOSE 3001
+
+# Health check for Hostinger / orchestrators (Alpine has no wget)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "require('http').get('http://127.0.0.1:3001/api/healthz', r => { r.resume(); process.exit(r.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1))"
 
 # Start the API server (run from apps/api directory)
 WORKDIR /app/apps/api
