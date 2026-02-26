@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start -H 0.0.0.0",
     "lint": "next lint",
-    "clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\""
+    "clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\"",
+    "build:vercel:web": "npm install && npm run build:shared && npm -w @gepanda/web run build"
   },
   "dependencies": {
     "@gepanda/shared": "0.1.0",

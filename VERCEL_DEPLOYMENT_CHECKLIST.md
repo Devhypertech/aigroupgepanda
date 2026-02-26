@@ -23,7 +23,7 @@
 
 | Setting | Value |
 |---------|-------|
-| **Root Directory** | `apps/web` |
+| **Root Directory** | Leave empty (repository root) |
 | **Framework Preset** | Next.js (auto-detected) |
 | **Build Command** | `npm run build:vercel:web` |
 | **Output Directory** | `.next` (auto-detected) |
@@ -56,7 +56,7 @@ NEXT_PUBLIC_TRAVELPAYOUTS_MARKER=613624
 - [ ] Authorize GitHub access
 
 ### 2. Configure Project
-- [ ] Set **Root Directory** to `apps/web`
+- [ ] Set **Root Directory** to empty (use repo root; do not use `apps/web`)
 - [ ] Verify **Framework Preset** is Next.js
 - [ ] Set **Build Command** to `npm run build:vercel:web`
 - [ ] Leave **Output Directory** as `.next` (auto)

@@ -15,7 +15,8 @@
     "dev:shared": "npm run build:shared",
     "dev:api": "npm run build:shared && npm run dev --workspace=apps/api",
     "dev:web": "npm run build:shared && npm run dev --workspace=apps/web",
-    "dev": "npm run build:shared && npm run dev:api & npm run dev:web",
+    "dev:db": "docker compose -f infra/docker-compose.yml up -d postgres",
+    "dev": "npm run build:shared && npm run dev:db && npx wait-on tcp:localhost:5433 && npx concurrently -n api,web -c blue,green \"npm run dev --workspace=apps/api\" \"npm run dev --workspace=apps/web\"",
     "build:shared": "npm -w @gepanda/shared run build",
     "build:api": "npm run build:shared && npm -w @gepanda/api run build",
     "build:web": "npm run build:shared && npm -w @gepanda/web run build",
@@ -27,9 +28,13 @@
     "lint": "npm run lint --workspace=apps/web",
     "build:railway:api": "corepack enable && corepack prepare npm@10.2.0 --activate && npm install && npm run build:shared && npm -w @gepanda/api run build",
     "build:railway:web": "corepack enable && corepack prepare npm@10.2.0 --activate && npm install && npm run build:shared && npm -w @gepanda/web run build",
-    "build:vercel:web": "npm install && npm run build:shared && npm -w @gepanda/web run build"
+    "build:vercel:web": "npm install && npm run build:shared && npm run build --prefix apps/web"
   },
   "dependencies": {
     "getstream": "^8.8.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "wait-on": "^8.0.1"
   }
 }

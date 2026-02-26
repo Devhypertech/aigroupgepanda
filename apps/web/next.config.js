@@ -8,7 +8,7 @@ const nextConfig = {
     NEXT_PUBLIC_API_URL: apiUrl,
   },
   transpilePackages: ['@gepanda/shared'],
-  // Proxy API routes to the API server
+  // Proxy API routes to the API server (do NOT add /api/auth - NextAuth must stay on this app)
   async rewrites() {
     return [
       { source: '/api/stream/:path*', destination: `${apiUrl}/api/stream/:path*` },

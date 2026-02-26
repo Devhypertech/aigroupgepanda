@@ -1,15 +1,13 @@
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import bcryptjs from 'bcryptjs';
-import { prisma } from './prisma';
 
-// Get API URL from environment
-// Prefer server-only API_URL when available, fall back to public URL for simplicity.
-const API_URL =
+// Get API URL from environment (no trailing slash to avoid double slashes in paths)
+const rawApiUrl =
   process.env.API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   'http://localhost:3001';
+const API_URL = typeof rawApiUrl === 'string' ? rawApiUrl.trim().replace(/\/+$/, '') : rawApiUrl;
 
 /**
  * IMPORTANT:
@@ -34,41 +32,52 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Use Prisma directly to find user
-          const user = await prisma.user.findUnique({
-            where: { email: credentials.email },
+          const loginUrl = `${API_URL}/api/auth/login`;
+          const response = await fetch(loginUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
           });
 
-          if (!user) {
-            throw new Error('Invalid email or password');
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            const message =
+              data?.message || data?.error || 'Invalid email or password';
+            console.error('[NextAuth] API login failed:', response.status, loginUrl, data);
+            throw new Error(message);
           }
 
-          // Check if user has a passwordHash (OAuth users won't have one)
-          if (!user.passwordHash) {
-            throw new Error('This account was created with Google. Please sign in with Google instead.');
+          const user = data?.user;
+          if (!user?.id || !user?.email) {
+            console.error('[NextAuth] API login response missing user:', data);
+            throw new Error('Invalid response from login');
           }
 
-          // Verify password using bcryptjs
-          const isPasswordValid = await bcryptjs.compare(
-            credentials.password,
-            user.passwordHash
-          );
-
-          if (!isPasswordValid) {
-            throw new Error('Invalid email or password');
-          }
-
-          // Return user object for NextAuth session
           return {
             id: user.id,
             email: user.email,
-            name: user.name,
-            image: user.image || undefined,
+            name: user.name ?? user.email,
+            image: user.image ?? undefined,
           };
         } catch (error) {
-          console.error('[NextAuth] Credentials authorize error:', error);
-          // Re-throw to show error message to user
-          throw error;
+          const isNetworkError =
+            error instanceof TypeError ||
+            (error instanceof Error &&
+              (error.message.includes('fetch') ||
+                error.message.includes('ECONNREFUSED') ||
+                error.message.includes('network') ||
+                error.message.includes('ENOTFOUND') ||
+                error.message.includes('ETIMEDOUT') ||
+                error.cause !== undefined));
+          if (isNetworkError) {
+            console.error('[NextAuth] Cannot reach API:', { API_URL, loginUrl: `${API_URL}/api/auth/login`, error: error instanceof Error ? error.message : String(error) });
+            throw new Error('Login service unavailable. Set API_URL in the web container to your API URL (e.g. https://apiai.gepanda.com) and ensure the API is running.');
+          }
+          throw error instanceof Error ? error : new Error('Invalid email or password');
         }
       },
     }),
@@ -85,7 +94,8 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        // Only use Secure when actually on HTTPS (e.g. NEXTAUTH_URL is https). On HTTP (e.g. IP:3000) Secure would prevent the cookie from being sent.
+        secure: process.env.NEXTAUTH_URL?.startsWith('https') ?? false,
         maxAge: 7 * 24 * 60 * 60, // 7 days
       },
     },

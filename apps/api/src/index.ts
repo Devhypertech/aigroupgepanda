@@ -81,7 +81,7 @@ console.log(`   Working Directory: ${process.cwd()}`);
 // Print loaded env keys (names only, not values)
 console.log(`\n🔑 Loaded Environment Variables (keys only):`);
 const envKeys = Object.keys(process.env)
-  .filter(key => 
+  .filter(key =>
     key.startsWith('STREAM_') ||
     key.startsWith('ZHIPU_') ||
     key.startsWith('DATABASE_') ||
@@ -136,17 +136,17 @@ console.log('\n✅ Environment Variables Status:');
 console.log(`   STREAM_API_KEY: ${criticalEnvVars.STREAM_API_KEY ? '✓ Loaded' : '✗ Missing'}`);
 console.log(`   STREAM_API_SECRET: ${criticalEnvVars.STREAM_API_SECRET ? '✓ Loaded' : '✗ Missing'}`);
 console.log(`   STREAM_FEEDS_API_KEY: ${process.env.STREAM_FEEDS_API_KEY || process.env.STREAM_API_KEY ? '✓ Loaded' : '⚠️  Not set (Activity Feeds will use Chat key or be disabled)'}`);
-        console.log(`   STREAM_FEEDS_API_SECRET: ${process.env.STREAM_FEEDS_API_SECRET || process.env.STREAM_API_SECRET ? '✓ Loaded' : '⚠️  Not set (Activity Feeds will use Chat secret or be disabled)'}`);
-        console.log(`   ZHIPU_API_KEY: ${process.env.ZHIPU_API_KEY ? '✓ Loaded' : '⚠️  Not set (AI features will not work)'}`);
-        console.log(`   DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Loaded' : '⚠️  Not set (database features will not work)'}`);
-        console.log(`   RYE_API_KEY: ${process.env.RYE_API_KEY ? '✓ Loaded' : '⚠️  Not set (checkout features will not work)'}`);
-        console.log(`   TRAVELPAYOUTS_TOKEN/API_KEY: ${(process.env.TRAVELPAYOUTS_TOKEN || process.env.TRAVELPAYOUTS_API_KEY) ? '✓ Loaded' : '⚠️  Not set (flight search will use mock data)'}`);
-        console.log(`   DOBA_PUBLIC_KEY: ${process.env.DOBA_PUBLIC_KEY ? '✓ Loaded' : '⚠️  Not set'}`);
-        console.log(`   DOBA_PRIVATE_KEY: ${process.env.DOBA_PRIVATE_KEY ? '✓ Loaded' : '⚠️  Not set (product recommendations will use mock data)'}`);
-        console.log(`   CROSSMINT_API_KEY: ${process.env.CROSSMINT_API_KEY ? '✓ Loaded' : '⚠️  Not set (checkout link creation will not work)'}`);
-        console.log(`   SERPAPI_API_KEY: ${process.env.SERPAPI_API_KEY ? '✓ Loaded' : '⚠️  Not set (Google shopping searches will not work)'}`);
-        console.log(`   WEATHER_API_KEY: ${process.env.WEATHER_API_KEY ? '✓ Loaded' : '⚠️  Not set (weather features will use mock data)'}`);
-        console.log(`   ADMIN_EMAILS: ${process.env.ADMIN_EMAILS ? `✓ Loaded (${process.env.ADMIN_EMAILS.split(',').length} admin(s))` : '⚠️  Not set (admin endpoints disabled)'}`);
+console.log(`   STREAM_FEEDS_API_SECRET: ${process.env.STREAM_FEEDS_API_SECRET || process.env.STREAM_API_SECRET ? '✓ Loaded' : '⚠️  Not set (Activity Feeds will use Chat secret or be disabled)'}`);
+console.log(`   ZHIPU_API_KEY: ${process.env.ZHIPU_API_KEY ? '✓ Loaded' : '⚠️  Not set (AI features will not work)'}`);
+console.log(`   DATABASE_URL: ${process.env.DATABASE_URL ? '✓ Loaded' : '⚠️  Not set (database features will not work)'}`);
+console.log(`   RYE_API_KEY: ${process.env.RYE_API_KEY ? '✓ Loaded' : '⚠️  Not set (checkout features will not work)'}`);
+console.log(`   TRAVELPAYOUTS_TOKEN/API_KEY: ${(process.env.TRAVELPAYOUTS_TOKEN || process.env.TRAVELPAYOUTS_API_KEY) ? '✓ Loaded' : '⚠️  Not set (flight search will use mock data)'}`);
+console.log(`   DOBA_PUBLIC_KEY: ${process.env.DOBA_PUBLIC_KEY ? '✓ Loaded' : '⚠️  Not set'}`);
+console.log(`   DOBA_PRIVATE_KEY: ${process.env.DOBA_PRIVATE_KEY ? '✓ Loaded' : '⚠️  Not set (product recommendations will use mock data)'}`);
+console.log(`   CROSSMINT_API_KEY: ${process.env.CROSSMINT_API_KEY ? '✓ Loaded' : '⚠️  Not set (checkout link creation will not work)'}`);
+console.log(`   SERPAPI_API_KEY: ${process.env.SERPAPI_API_KEY ? '✓ Loaded' : '⚠️  Not set (Google shopping searches will not work)'}`);
+console.log(`   WEATHER_API_KEY: ${process.env.WEATHER_API_KEY ? '✓ Loaded' : '⚠️  Not set (weather features will use mock data)'}`);
+console.log(`   ADMIN_EMAILS: ${process.env.ADMIN_EMAILS ? `✓ Loaded (${process.env.ADMIN_EMAILS.split(',').length} admin(s))` : '⚠️  Not set (admin endpoints disabled)'}`);
 
 // ============================================================================
 // CHAT & AI CONFIGURATION VALIDATION
@@ -223,51 +223,20 @@ import { setupStreamWebhooks } from './services/stream/webhooks.js';
 const app = express();
 const httpServer = createServer(app);
 
-// CORS configuration - allow requests from web app
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:3001',
-  'https://aigroupgepanda-api.vercel.app',
-];
-
-// Add web app origin from environment if set
-if (process.env.WEB_APP_URL) {
-  allowedOrigins.push(process.env.WEB_APP_URL);
-}
-
+// CORS: allow all origins (public API). With credentials, we reflect the request origin.
 app.use(cors({
-  origin: (origin, callback) => {
-    // In development, always allow localhost:3000 and 127.0.0.1:3000
-    if (process.env.NODE_ENV !== 'production') {
-      if (!origin || 
-          origin === 'http://localhost:3000' || 
-          origin === 'http://127.0.0.1:3000' ||
-          origin.startsWith('http://localhost:') ||
-          origin.startsWith('http://127.0.0.1:')) {
-        return callback(null, true);
-      }
-    }
-    
-    // Allow requests with no origin (mobile apps, Postman, etc.) in development
-    if (!origin && process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-    
-    if (origin && allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else if (!origin) {
-      // Allow requests with no origin
-      callback(null, true);
-    } else {
-      console.warn('[CORS] Blocked origin:', origin, 'Allowed origins:', allowedOrigins);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: [
+    "https://aiplatform.gepanda.com/",
+    "https://www.aiplatform.gepanda.com/",
+    "http://72.61.74.168:3001/" // dev (optional)
+  ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-User-Id"
+  ],
 }));
 
 app.use(express.json());
@@ -365,7 +334,7 @@ const loadRoutes = async () => {
     { name: 'feed', router: feedRouter, path: '/api/feed' },
     { name: 'flights', router: flightsRouter, path: '/api/flights' },
   ];
-  
+
   // Register pre-imported routers first
   preImportedRouters.forEach(({ name, router, path }) => {
     try {
@@ -379,7 +348,7 @@ const loadRoutes = async () => {
       console.warn(`⚠️  Failed to register pre-imported route '${name}':`, error instanceof Error ? error.message : error);
     }
   });
-  
+
   const routeLoaders = [
     // feed route moved to pre-imported routes above (critical route)
     { name: 'feedSeed', loader: () => import('./routes/feedSeed.js'), path: '/api/feed' },
@@ -415,18 +384,18 @@ const loadRoutes = async () => {
         const module = await loader();
         // Handle both default export and direct router export
         let router: any = null;
-        
+
         if (module && typeof module === 'object') {
           // Check for default export first
           if ('default' in module && module.default && typeof module.default === 'object' && 'use' in module.default) {
             router = module.default;
-          } 
+          }
           // Check if module itself is a router (for Promise.resolve() cases where router is already imported)
           else if ('use' in module && typeof (module as any).use === 'function') {
             router = module;
           }
         }
-        
+
         if (!router || typeof router.use !== 'function') {
           // Debug info for troubleshooting
           console.error(`[Route Loader] Failed to extract router for '${name}':`, {
@@ -438,11 +407,11 @@ const loadRoutes = async () => {
           });
           throw new Error(`Invalid router export for ${name} - expected Express Router`);
         }
-        
-      app.use(path, router);
-      registeredRoutesList.push(path);
-      console.log(`   ✓ Registered route: ${path} (router has ${router.stack?.length || 0} middleware/routes)`);
-      return { name, success: true };
+
+        app.use(path, router);
+        registeredRoutesList.push(path);
+        console.log(`   ✓ Registered route: ${path} (router has ${router.stack?.length || 0} middleware/routes)`);
+        return { name, success: true };
       } catch (error) {
         console.warn(`⚠️  Failed to load route '${name}':`, error instanceof Error ? error.message : error);
         return { name, success: false, error: error instanceof Error ? error.message : String(error) };
@@ -460,7 +429,7 @@ const loadRoutes = async () => {
       if (result.status === 'rejected' || (result.status === 'fulfilled' && !result.value.success)) {
         const routeName = routeLoaders[idx].name;
         const routePath = routeLoaders[idx].path;
-        const error = result.status === 'rejected' 
+        const error = result.status === 'rejected'
           ? (result.reason instanceof Error ? result.reason.message : String(result.reason))
           : result.value.error;
         console.warn(`   ❌ ${routeName} (${routePath}): ${error}`);
@@ -471,7 +440,7 @@ const loadRoutes = async () => {
     });
     console.warn('');
   }
-  
+
   // List all successfully registered routes for verification
   console.log('\n📋 Registered Routes Summary:');
   const registeredRoutes = results
@@ -482,16 +451,16 @@ const loadRoutes = async () => {
       return null;
     })
     .filter(Boolean);
-  
+
   // Add pre-imported routes
   preImportedRouters.forEach(({ path }) => {
     registeredRoutes.push(path);
   });
-  
+
   registeredRoutes.sort().forEach(path => {
     console.log(`   ✓ ${path}`);
   });
-  
+
   // Verify critical routes are registered
   const criticalRoutes = ['/api/stream', '/api/companion'];
   const missingCritical = criticalRoutes.filter(route => !registeredRoutesList.includes(route));
@@ -502,7 +471,7 @@ const loadRoutes = async () => {
   } else {
     console.log('\n✅ All critical routes registered (/api/stream, /api/companion)');
   }
-  
+
   // Add debug endpoint to list all registered routes
   app.get('/api/debug/routes', (req, res) => {
     res.json({
@@ -540,7 +509,7 @@ const loadRoutes = async () => {
       NODE_ENV: process.env.NODE_ENV || 'development',
     });
   });
-  
+
   console.log('');
 };
 
@@ -566,7 +535,7 @@ app.use((req, res, next) => {
   if (req.path.startsWith('/_next') || req.path.startsWith('/static')) {
     return next();
   }
-  
+
   // Return JSON 404 with helpful info
   res.status(404).json({
     error: 'Route not found',
@@ -650,7 +619,7 @@ const bindServerToPort = (
 ): Promise<number> => {
   return new Promise((resolve, reject) => {
     const portsToTry = [preferredPort];
-    
+
     // Generate fallback ports (3001 -> 3002 -> 3003, etc.)
     for (let i = 1; i < maxAttempts; i++) {
       portsToTry.push(preferredPort + i);
@@ -681,7 +650,7 @@ const bindServerToPort = (
       const errorHandler = (error: NodeJS.ErrnoException) => {
         if (error.code === 'EADDRINUSE') {
           console.log(`   ⚠️  Port ${currentPort} is already in use`);
-          
+
           // Try next port
           if (attemptIndex < portsToTry.length) {
             console.log(`   🔄 Trying next port: ${portsToTry[attemptIndex]}...`);
@@ -736,7 +705,7 @@ bindServerToPort(httpServer, finalPort, 3)
     console.log('\n' + '='.repeat(70));
     console.log('✅ SERVER STARTED SUCCESSFULLY');
     console.log('='.repeat(70));
-    
+
     if (boundPort !== finalPort) {
       console.log(`\n⚠️  Port ${finalPort} was in use, using port ${boundPort} instead`);
       console.log(`   Update your frontend NEXT_PUBLIC_API_URL if needed:`);
@@ -744,7 +713,7 @@ bindServerToPort(httpServer, finalPort, 3)
     } else {
       console.log(`\n✅ Using preferred port ${finalPort}`);
     }
-    
+
     console.log(`\n🚀 API Server is now listening:`);
     console.log(`   Local:    http://localhost:${boundPort}`);
     console.log(`   Network:  http://0.0.0.0:${boundPort}`);
@@ -794,7 +763,7 @@ bindServerToPort(httpServer, finalPort, 3)
     console.error('\n' + '='.repeat(70));
     console.error('❌ FAILED TO START SERVER');
     console.error('='.repeat(70));
-    
+
     if (error.code === 'EADDRINUSE_ALL' && error.triedPorts) {
       console.error(`\n⚠️  All ports are in use!`);
       console.error(`   Tried ports: ${error.triedPorts.join(', ')}`);
@@ -818,7 +787,7 @@ bindServerToPort(httpServer, finalPort, 3)
         console.error(error.stack);
       }
     }
-    
+
     console.error('\n' + '='.repeat(70) + '\n');
     process.exit(1);
   });

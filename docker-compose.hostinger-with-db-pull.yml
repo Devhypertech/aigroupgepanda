@@ -1,7 +1,10 @@
-# Hostinger Docker – API + Postgres on same VPS
-# Use if you do NOT use Hostinger managed database. Set env in Hostinger UI.
-
-version: '3.8'
+# Our API image: we build it in GitHub Actions; Hostinger only pulls and runs it.
+# API + Postgres on same VPS; no build on Hostinger.
+#
+# 1. Replace REPO_OWNER below with your GitHub username (or org) in lowercase – GHCR requires lowercase.
+# 2. Run workflow "Build and push API image" to build and publish our image to GHCR.
+# 3. Use this file's raw URL in Hostinger "Compose from URL".
+# (version is obsolete in Docker Compose v2+ and is ignored)
 
 services:
   postgres:
@@ -10,10 +13,9 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: gepanda
-      POSTGRES_PASSWORD: Postgres123!
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-in-production}
       POSTGRES_DB: gepanda
     ports:
-      # Use 5433 on host to avoid conflict with existing Postgres on 5432
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -24,16 +26,16 @@ services:
       retries: 5
 
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # Use your GitHub username/org in lowercase (e.g. devhypertech, mycompany)
+    image: ghcr.io/devhypertech/gepanda-api:latest
     container_name: gepanda-api
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
+    # Host port 3002 to avoid conflict if 3001 is already in use on the VPS
     ports:
-      - "3001:3001"
+      - "3002:3001"
     environment:
       NODE_ENV: production
       PORT: "3001"

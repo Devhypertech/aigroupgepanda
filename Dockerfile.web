@@ -1,5 +1,11 @@
 FROM node:20-alpine AS builder
 
+# Build-time env (NEXT_PUBLIC_* are baked into client bundle). Set in CI or when building locally.
+ARG NEXT_PUBLIC_API_URL=http://localhost:3001
+ARG NEXT_PUBLIC_STREAM_API_KEY=
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_STREAM_API_KEY=$NEXT_PUBLIC_STREAM_API_KEY
+
 # Enable corepack for npm version management
 RUN corepack enable && corepack prepare npm@10.2.0 --activate
 

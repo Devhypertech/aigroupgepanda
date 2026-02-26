@@ -1,0 +1,72 @@
+# Full stack on Hostinger: Postgres + API + Web (frontend). All images pulled from GHCR; no build on VPS.
+#
+# Prerequisites:
+# 1. Build and push both images in GitHub Actions:
+#    - "Build and push API image" → ghcr.io/YOUR_USER/gepanda-api:latest
+#    - "Build and push Web image" → ghcr.io/YOUR_USER/gepanda-web:latest
+# 2. Set repo variable NEXT_PUBLIC_API_URL to your *public* API URL (e.g. https://api.yourdomain.com or http://YOUR_VPS_IP:3002).
+# 3. Replace devhypertech below with your GitHub username (lowercase).
+# 4. In Hostinger: Compose from URL or paste this file; set environment variables (see below).
+# 5. Open ports 3000 (web) and 3002 (API) in Hostinger firewall, or put a reverse proxy (nginx) in front.
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: gepanda-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gepanda
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-in-production}
+      POSTGRES_DB: gepanda
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gepanda"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: ghcr.io/devhypertech/gepanda-api:latest
+    container_name: gepanda-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3002:3001"
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      DATABASE_URL: postgresql://gepanda:${POSTGRES_PASSWORD:-change-me-in-production}@postgres:5432/gepanda?schema=public
+      # CORS: frontend origin (no trailing slash). Set in .env or Hostinger env vars.
+      WEB_APP_URL: ${WEB_APP_URL:-}
+      STREAM_API_KEY: ${STREAM_API_KEY:-}
+      STREAM_API_SECRET: ${STREAM_API_SECRET:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+
+  web:
+    image: ghcr.io/devhypertech/gepanda-web:latest
+    container_name: gepanda-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      # NextAuth (required) – set in Hostinger UI
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      # Optional: Google OAuth
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+
+volumes:
+  postgres_data:

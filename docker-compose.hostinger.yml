@@ -1,0 +1,26 @@
+# Hostinger Docker – API only (use managed DB or set DATABASE_URL)
+# Use "Compose manually" in Hostinger Docker Manager and paste this, or
+# set env vars in Hostinger UI (see docs/DEPLOY-HOSTINGER.md).
+
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gepanda-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      DATABASE_URL: ${DATABASE_URL:-}
+      WEB_APP_URL: ${WEB_APP_URL:-}
+      STREAM_API_KEY: ${STREAM_API_KEY:-}
+      STREAM_API_SECRET: ${STREAM_API_SECRET:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+    # Optional: use env_file to load from a file on the server (do not commit secrets)
+    # env_file:
+    #   - .env

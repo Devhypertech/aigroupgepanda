@@ -4,6 +4,5 @@
   "devCommand": "npm run dev:web",
   "installCommand": "npm install",
   "framework": null,
-  "outputDirectory": "apps/web/.next",
-  "rootDirectory": "."
+  "outputDirectory": "apps/web/.next"
 }
