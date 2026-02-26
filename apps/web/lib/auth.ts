@@ -64,15 +64,20 @@ export const authOptions: NextAuthOptions = {
             image: user.image ?? undefined,
           };
         } catch (error) {
-          if (error instanceof Error) {
-            if (error.message.includes('fetch') || error.message.includes('ECONNREFUSED') || error.message.includes('network')) {
-              console.error('[NextAuth] Cannot reach API at', API_URL, error);
-              throw new Error('Login service unavailable. Check that API_URL is set and the API is running.');
-            }
-            throw error;
+          const isNetworkError =
+            error instanceof TypeError ||
+            (error instanceof Error &&
+              (error.message.includes('fetch') ||
+                error.message.includes('ECONNREFUSED') ||
+                error.message.includes('network') ||
+                error.message.includes('ENOTFOUND') ||
+                error.message.includes('ETIMEDOUT') ||
+                error.cause !== undefined));
+          if (isNetworkError) {
+            console.error('[NextAuth] Cannot reach API:', { API_URL, loginUrl: `${API_URL}/api/auth/login`, error: error instanceof Error ? error.message : String(error) });
+            throw new Error('Login service unavailable. Set API_URL in the web container to your API URL (e.g. https://apiai.gepanda.com) and ensure the API is running.');
           }
-          console.error('[NextAuth] Credentials authorize error:', error);
-          throw new Error('Invalid email or password');
+          throw error instanceof Error ? error : new Error('Invalid email or password');
         }
       },
     }),

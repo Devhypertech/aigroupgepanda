@@ -223,59 +223,20 @@ import { setupStreamWebhooks } from './services/stream/webhooks.js';
 const app = express();
 const httpServer = createServer(app);
 
-// CORS configuration - allow requests from web app
-const allowedOrigins: string[] = [
-  // Local development
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:3001',
-  // Production web app (frontend) – add all domains that host the frontend
-  'https://aiplatform.gepanda.com',
-  'http://aiplatform.gepanda.com',
-  'https://aigroupgepanda-api.vercel.app',
-];
-
-// Add web app origin(s) from environment (comma-separated, no trailing slash). Overrides/adds to list above.
-if (process.env.WEB_APP_URL) {
-  const urls = process.env.WEB_APP_URL.split(',').map((u) => u.trim().replace(/\/+$/, '')).filter(Boolean);
-  allowedOrigins.push(...urls);
-}
-
+// CORS: allow all origins (public API). With credentials, we reflect the request origin.
 app.use(cors({
-  origin: (origin, callback) => {
-    // Normalize origin for comparison (no trailing slash)
-    const normalizedOrigin = origin ? origin.replace(/\/+$/, '') : '';
-
-    // In development, always allow localhost and 127.0.0.1
-    if (process.env.NODE_ENV !== 'production') {
-      if (!origin ||
-        origin === 'http://localhost:3000' ||
-        origin === 'http://127.0.0.1:3000' ||
-        origin.startsWith('http://localhost:') ||
-        origin.startsWith('http://127.0.0.1:')) {
-        return callback(null, true);
-      }
-    }
-
-    // Allow requests with no origin (mobile apps, Postman, etc.) in development
-    if (!origin && process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-
-    const allowed = origin && (allowedOrigins.includes(origin) || allowedOrigins.includes(normalizedOrigin));
-    if (allowed) {
-      callback(null, true);
-    } else if (!origin) {
-      callback(null, true);
-    } else {
-      console.warn('[CORS] Blocked origin:', origin, 'Allowed origins:', allowedOrigins);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: [
+    "https://aiplatform.gepanda.com/",
+    "https://www.aiplatform.gepanda.com/",
+    "http://72.61.74.168:3001/" // dev (optional)
+  ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-User-Id"
+  ],
 }));
 
 app.use(express.json());

@@ -4,9 +4,9 @@
 # 1. Build and push the Web image in GitHub Actions: "Build and push Web image".
 # 2. Set repo variable NEXT_PUBLIC_API_URL to your existing API URL (e.g. http://YOUR_VPS_IP:3002).
 # 3. Replace devhypertech below with your GitHub username (lowercase).
-# 4. On Hostinger: create a .env file in the same folder as this compose file with
-#    NEXTAUTH_URL, NEXTAUTH_SECRET (see env.hostinger.example). Or set them in Hostinger env UI.
-# 5. On the API server: set WEB_APP_URL=http://YOUR_VPS_IP:3000 so CORS allows this frontend.
+# 4. On Hostinger: create a .env with NEXTAUTH_URL, NEXTAUTH_SECRET, and API_URL (required for login).
+#    Example: API_URL=https://apiai.gepanda.com  NEXTAUTH_URL=https://aiplatform.gepanda.com
+# 5. On the API server: set WEB_APP_URL to your frontend origin (e.g. https://aiplatform.gepanda.com) for CORS.
 # 6. Open port 3000 in Hostinger firewall if needed.
 
 services:
@@ -20,7 +20,7 @@ services:
       NODE_ENV: production
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
-      # Server-side login calls the API; set so NextAuth can reach it (same as NEXT_PUBLIC_API_URL used at build).
+      # Required for email/password login. Must be the API URL the server can reach (e.g. https://apiai.gepanda.com).
       API_URL: ${API_URL:-}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
