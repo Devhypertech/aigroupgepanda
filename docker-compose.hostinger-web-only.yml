@@ -4,8 +4,10 @@
 # 1. Build and push the Web image in GitHub Actions: "Build and push Web image".
 # 2. Set repo variable NEXT_PUBLIC_API_URL to your existing API URL (e.g. http://YOUR_VPS_IP:3002).
 # 3. Replace devhypertech below with your GitHub username (lowercase).
-# 4. In Hostinger: Compose from URL or paste this file; set NEXTAUTH_URL, NEXTAUTH_SECRET (see below).
-# 5. Open port 3000 in Hostinger firewall if needed.
+# 4. On Hostinger: create a .env file in the same folder as this compose file with
+#    NEXTAUTH_URL, NEXTAUTH_SECRET (see env.hostinger.example). Or set them in Hostinger env UI.
+# 5. On the API server: set WEB_APP_URL=http://YOUR_VPS_IP:3000 so CORS allows this frontend.
+# 6. Open port 3000 in Hostinger firewall if needed.
 
 version: '3.8'
 
@@ -20,6 +22,8 @@ services:
       NODE_ENV: production
       PORT: "3000"
       HOSTNAME: "0.0.0.0"
+      # Server-side login calls the API; set so NextAuth can reach it (same as NEXT_PUBLIC_API_URL used at build).
+      API_URL: ${API_URL:-}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}

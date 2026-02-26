@@ -16,8 +16,11 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3001"
-      # Set these in Hostinger "Environment variables" (or here for testing only):
-      # DATABASE_URL, STREAM_API_KEY, STREAM_API_SECRET, JWT_SECRET, WEB_APP_URL
-    # Optional: use env_file if you have a .env.production (do not commit secrets)
+      DATABASE_URL: ${DATABASE_URL:-}
+      WEB_APP_URL: ${WEB_APP_URL:-}
+      STREAM_API_KEY: ${STREAM_API_KEY:-}
+      STREAM_API_SECRET: ${STREAM_API_SECRET:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+    # Optional: use env_file to load from a file on the server (do not commit secrets)
     # env_file:
-    #   - apps/api/.env.production
+    #   - .env

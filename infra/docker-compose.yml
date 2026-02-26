@@ -37,10 +37,11 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3001"
-      # DATABASE_URL for API (connects to postgres service inside Docker network)
       DATABASE_URL: postgresql://gepanda:${POSTGRES_PASSWORD:-change-me-in-production}@postgres:5432/gepanda?schema=public
-      # Set in Hostinger UI: STREAM_API_KEY, STREAM_API_SECRET, JWT_SECRET, WEB_APP_URL
-      # Optionally override: POSTGRES_PASSWORD
+      WEB_APP_URL: ${WEB_APP_URL:-}
+      STREAM_API_KEY: ${STREAM_API_KEY:-}
+      STREAM_API_SECRET: ${STREAM_API_SECRET:-}
+      JWT_SECRET: ${JWT_SECRET:-}
 
 volumes:
   postgres_data:

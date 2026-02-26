@@ -420,7 +420,8 @@ export async function POST(req: NextRequest) {
         
         // Try to call backend API for dynamic itinerary generation
         try {
-          const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+          const rawBackend = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+          const backendUrl = typeof rawBackend === 'string' ? rawBackend.trim().replace(/\/+$/, '') : rawBackend;
           const backendResponse = await fetch(`${backendUrl}/api/chat/respond`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -506,7 +507,8 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const rawBackend2 = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const backendUrl = typeof rawBackend2 === 'string' ? rawBackend2.trim().replace(/\/+$/, '') : rawBackend2;
         let flights: Array<{ id?: string; airline: string; flightNumber: string; price: number; currency: string; departure: any; arrival: any; duration: string; stops: number; bookingUrl: string; deeplinkUrl?: string }> = [];
 
         try {

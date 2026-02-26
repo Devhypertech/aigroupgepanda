@@ -2,11 +2,12 @@ import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
-// Get API URL from environment (used for credentials login and OAuth upsert)
-const API_URL =
+// Get API URL from environment (no trailing slash to avoid double slashes in paths)
+const rawApiUrl =
   process.env.API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   'http://localhost:3001';
+const API_URL = typeof rawApiUrl === 'string' ? rawApiUrl.trim().replace(/\/+$/, '') : rawApiUrl;
 
 /**
  * IMPORTANT:
@@ -31,8 +32,8 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Use API login so the web app does not need Prisma or DATABASE_URL (fixes Vercel build)
-          const response = await fetch(`${API_URL}/api/auth/login`, {
+          const loginUrl = `${API_URL}/api/auth/login`;
+          const response = await fetch(loginUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -46,11 +47,13 @@ export const authOptions: NextAuthOptions = {
           if (!response.ok) {
             const message =
               data?.message || data?.error || 'Invalid email or password';
+            console.error('[NextAuth] API login failed:', response.status, loginUrl, data);
             throw new Error(message);
           }
 
           const user = data?.user;
           if (!user?.id || !user?.email) {
+            console.error('[NextAuth] API login response missing user:', data);
             throw new Error('Invalid response from login');
           }
 
@@ -61,8 +64,15 @@ export const authOptions: NextAuthOptions = {
             image: user.image ?? undefined,
           };
         } catch (error) {
+          if (error instanceof Error) {
+            if (error.message.includes('fetch') || error.message.includes('ECONNREFUSED') || error.message.includes('network')) {
+              console.error('[NextAuth] Cannot reach API at', API_URL, error);
+              throw new Error('Login service unavailable. Check that API_URL is set and the API is running.');
+            }
+            throw error;
+          }
           console.error('[NextAuth] Credentials authorize error:', error);
-          throw error;
+          throw new Error('Invalid email or password');
         }
       },
     }),

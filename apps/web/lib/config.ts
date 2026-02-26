@@ -20,7 +20,8 @@
 export function getPublicConfig() {
   // Lazy evaluation - process.env is only accessed when this function is called
   // NEVER include TRAVELPAYOUTS_TOKEN - server-only, must not be exposed to browser
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const raw = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const apiUrl = typeof raw === 'string' ? raw.trim().replace(/\/+$/, '') : raw;
   
   // Log in development to help debug
   if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
