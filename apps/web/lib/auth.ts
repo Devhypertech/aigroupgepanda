@@ -89,7 +89,8 @@ export const authOptions: NextAuthOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        // Only use Secure when actually on HTTPS (e.g. NEXTAUTH_URL is https). On HTTP (e.g. IP:3000) Secure would prevent the cookie from being sent.
+        secure: process.env.NEXTAUTH_URL?.startsWith('https') ?? false,
         maxAge: 7 * 24 * 60 * 60, // 7 days
       },
     },

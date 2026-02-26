@@ -225,15 +225,18 @@ const httpServer = createServer(app);
 
 // CORS configuration - allow requests from web app
 const allowedOrigins: string[] = [
+  // Local development
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
+  // Production web app (frontend) – add all domains that host the frontend
+  'https://aiplatform.gepanda.com',
+  'http://aiplatform.gepanda.com',
   'https://aigroupgepanda-api.vercel.app',
-  'http://72.61.74.168:3000',
 ];
 
-// Add web app origin(s) from environment (comma-separated, normalized: no trailing slash)
+// Add web app origin(s) from environment (comma-separated, no trailing slash). Overrides/adds to list above.
 if (process.env.WEB_APP_URL) {
   const urls = process.env.WEB_APP_URL.split(',').map((u) => u.trim().replace(/\/+$/, '')).filter(Boolean);
   allowedOrigins.push(...urls);

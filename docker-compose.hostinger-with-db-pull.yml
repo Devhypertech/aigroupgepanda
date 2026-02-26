@@ -4,8 +4,7 @@
 # 1. Replace REPO_OWNER below with your GitHub username (or org) in lowercase – GHCR requires lowercase.
 # 2. Run workflow "Build and push API image" to build and publish our image to GHCR.
 # 3. Use this file's raw URL in Hostinger "Compose from URL".
-
-version: '3.8'
+# (version is obsolete in Docker Compose v2+ and is ignored)
 
 services:
   postgres:
