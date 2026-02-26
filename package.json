@@ -27,7 +27,7 @@
     "lint": "npm run lint --workspace=apps/web",
     "build:railway:api": "corepack enable && corepack prepare npm@10.2.0 --activate && npm install && npm run build:shared && npm -w @gepanda/api run build",
     "build:railway:web": "corepack enable && corepack prepare npm@10.2.0 --activate && npm install && npm run build:shared && npm -w @gepanda/web run build",
-    "build:vercel:web": "npm install && npm run build:shared && npm -w @gepanda/web run build"
+    "build:vercel:web": "npm install && npm run build:shared && npm run build --prefix apps/web"
   },
   "dependencies": {
     "getstream": "^8.8.0"
