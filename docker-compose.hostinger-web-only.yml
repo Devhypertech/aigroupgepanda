@@ -1,0 +1,26 @@
+# Frontend only on Hostinger. Use when API + Postgres are already deployed and running.
+#
+# Prerequisites:
+# 1. Build and push the Web image in GitHub Actions: "Build and push Web image".
+# 2. Set repo variable NEXT_PUBLIC_API_URL to your existing API URL (e.g. http://YOUR_VPS_IP:3002).
+# 3. Replace devhypertech below with your GitHub username (lowercase).
+# 4. In Hostinger: Compose from URL or paste this file; set NEXTAUTH_URL, NEXTAUTH_SECRET (see below).
+# 5. Open port 3000 in Hostinger firewall if needed.
+
+version: '3.8'
+
+services:
+  web:
+    image: ghcr.io/devhypertech/gepanda-web:latest
+    container_name: gepanda-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
